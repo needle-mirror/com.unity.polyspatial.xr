@@ -1,0 +1,25 @@
+{
+    "name": "Unity.PolySpatial.XR.Editor",
+    "rootNamespace": "",
+    "references": [
+        "Unity.PolySpatial.XR",
+        "Unity.PolySpatial",
+        "Unity.PolySpatial.Editor",
+        "Unity.XR.CoreUtils",
+        "Unity.XR.CoreUtils.Editor",
+        "Unity.XR.Interaction.Toolkit"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [
+        "Unity.PolySpatial.Core.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
