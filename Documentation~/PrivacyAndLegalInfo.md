@@ -1,1 +1,0 @@
-# Privacy and Legal Info

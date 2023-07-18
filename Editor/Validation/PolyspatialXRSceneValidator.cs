@@ -14,7 +14,7 @@ namespace UnityEditor.PolySpatial.XR.Validation
         [RuleCreator]
         static void AddRuleCreators(List<ValueTuple<Type, IComponentRuleCreator>> ruleCreators)
         {
-            ruleCreators.Add(new(typeof(XRBaseController), new HasCapabilityRuleCreator(XRInputCapabilityKeys.ControllersInput)));
+            ruleCreators.Add(new(typeof(XRBaseController), new HasCapabilityRuleCreator(StandardCapabilityKeys.ControllersInput)));
         }
     }
 }
