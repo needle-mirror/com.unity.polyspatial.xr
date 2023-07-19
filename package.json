@@ -1,7 +1,7 @@
 {
   "name": "com.unity.polyspatial.xr",
   "displayName": "PolySpatial XR",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "unity": "2022.3",
   "description": "This is the PolySpatial XR official package designed to take advantage of spatial computing, it allows you to create experiences where virtual and physical worlds merge seamlessly. From immersive gaming and interactive storytelling to revolutionizing design and industry. the PolySpatial XR package empowers you to visualize, manipulate, and engage with digital content in your physical surroundings.",
   "keywords": [
@@ -17,7 +17,7 @@
     "com.unity.textmeshpro": "3.0.6",
     "com.unity.xr.core-utils": "2.1.0-pre.1",
     "com.unity.inputsystem": "1.4.4",
-    "com.unity.polyspatial": "0.0.4",
+    "com.unity.polyspatial": "0.1.0",
     "com.unity.xr.interaction.toolkit": "2.3.0-pre.2",
     "com.unity.xr.arfoundation": "5.0.0-pre.9",
     "com.unity.xr.hands": "1.1.0"
@@ -30,12 +30,12 @@
     "changelog": ""
   },
   "upmCi": {
-    "footprint": "2bc64ecefa9dcadf99880464ab71eed8c16c078f"
+    "footprint": "816156fc2d93119c605fc30e79d8fdf3e8a3fc00"
   },
-  "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.polyspatial.xr@0.0/manual/index.html",
+  "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.polyspatial.xr@0.1/manual/index.html",
   "repository": {
     "url": "https://github.cds.internal.unity3d.com/unity/quantum.git",
     "type": "git",
-    "revision": "cdd19b164afd408e300ed3f03662d3110b7deaaf"
+    "revision": "88192d50c511a8eac886b743b0afbe39a988c9cf"
   }
 }
