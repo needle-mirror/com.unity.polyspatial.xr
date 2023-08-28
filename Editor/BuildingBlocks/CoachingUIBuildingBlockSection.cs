@@ -17,31 +17,29 @@ namespace UnityEditor.PolySpatial.XR.BuildingBlocks
 
         const string k_CoachUIBBlocksMenuPath = "GameObject/XR/";
 
+        const string k_CoachUITapToPlaceIconPathDark = "Packages/com.unity.polyspatial.xr/Editor/BuildingBlocks/Icons/Blocks/UIAndLayout/Dark/TapToPlaceCoachUI.png";
+        const string k_CoachUITapToPlaceIconPathLight = "Packages/com.unity.polyspatial.xr/Editor/BuildingBlocks/Icons/Blocks/UIAndLayout/Light/TapToPlaceCoachUI.png";
         const string k_CoachingUITapToPlacePrefabPath = "Packages/com.unity.polyspatial.xr/Runtime/CoachingUI/Prefabs/CoachingUITapToPlaceContent.prefab";
         const string k_CoachUITapToPlaceBBlockMenuPath = k_CoachUIBBlocksMenuPath + k_SectionId + "/" + k_CoachUITapToPlaceBBlockName;
         const string k_CoachUITapToPlaceBBlockName = "Tap to Place Coach UI";
-        static GameObject s_CoachUITapToPlacePrefab;
         static PrefabCreatorBuildingBlock s_TapToPlaceBBlock;
 
+        const string k_CoachUIScanSurfaceIconPathDark = "Packages/com.unity.polyspatial.xr/Editor/BuildingBlocks/Icons/Blocks/UIAndLayout/Dark/ScanSurfaceCoachUI.png";
+        const string k_CoachUIScanSurfaceIconPathLight = "Packages/com.unity.polyspatial.xr/Editor/BuildingBlocks/Icons/Blocks/UIAndLayout/Light/ScanSurfaceCoachUI.png";
         const string k_CoachUIScanSurfacePrefabPath = "Packages/com.unity.polyspatial.xr/Runtime/CoachingUI/Prefabs/CoachingUIScanForSurfaces.prefab";
         const string k_CoachUIScanForSurfaceBBlockMenuPath = k_CoachUIBBlocksMenuPath + k_SectionId + "/" + k_CoachUIScanSurfaceBBlockName;
         const string k_CoachUIScanSurfaceBBlockName = "Scan Surface Coach UI";
-        static GameObject s_CoachUIScanSurfacePrefab;
         static PrefabCreatorBuildingBlock s_ScanSurfaceBBlock;
 
         [MenuItem(k_CoachUIScanForSurfaceBBlockMenuPath, false, 1)]
         public static void ExecuteScanForSurfaceMenuItem(MenuCommand command)
         {
-            if (s_CoachUIScanSurfacePrefab == null)
-                GenerateScanForSurfaceBuildingBlock();
             s_ScanSurfaceBBlock.ExecuteBuildingBlock();
         }
 
         [MenuItem(k_CoachUITapToPlaceBBlockMenuPath, false, 1)]
         public static void ExecuteTapToPlaceMenuItem(MenuCommand command)
         {
-            if (s_CoachUITapToPlacePrefab == null)
-                GenerateTapToPlaceBuildingBlock();
             s_TapToPlaceBBlock.ExecuteBuildingBlock();
         }
 
@@ -49,47 +47,24 @@ namespace UnityEditor.PolySpatial.XR.BuildingBlocks
         {
             var prefabBuildingBlocksList = new List<IBuildingBlock>();
 
-            var tapToPlaceBuildingBlock = GenerateTapToPlaceBuildingBlock();
-            if (tapToPlaceBuildingBlock != null)
-                prefabBuildingBlocksList.Add(tapToPlaceBuildingBlock);
+// TODO(LXR-2458): Restore this once 2.4.0-exp.3 has been published
+#if false
+            var tapToPlaceBuildingBlock = new PrefabCreatorBuildingBlock(k_CoachingUITapToPlacePrefabPath,
+                k_CoachUITapToPlaceBBlockName,
+                EditorGUIUtility.isProSkin ? k_CoachUITapToPlaceIconPathDark : k_CoachUITapToPlaceIconPathLight,
+                true,
+                k_CoachUITapToPlaceBBlockName);
+            prefabBuildingBlocksList.Add(tapToPlaceBuildingBlock);
 
-            var scanSurfaceBuildingBlock = GenerateScanForSurfaceBuildingBlock();
-            if (scanSurfaceBuildingBlock != null)
-                prefabBuildingBlocksList.Add(scanSurfaceBuildingBlock);
+            var scanSurfaceBuildingBlock = new PrefabCreatorBuildingBlock(k_CoachUIScanSurfacePrefabPath,
+                k_CoachUIScanSurfaceBBlockName,
+                EditorGUIUtility.isProSkin ? k_CoachUIScanSurfaceIconPathDark : k_CoachUIScanSurfaceIconPathLight,
+                true,
+                k_CoachUIScanSurfaceBBlockName);
+            prefabBuildingBlocksList.Add(scanSurfaceBuildingBlock);
+#endif
 
             return prefabBuildingBlocksList;
-        }
-
-        static PrefabCreatorBuildingBlock GenerateTapToPlaceBuildingBlock()
-        {
-            if (s_CoachUITapToPlacePrefab == null)
-                s_CoachUITapToPlacePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(k_CoachingUITapToPlacePrefabPath);
-
-            if (s_CoachUITapToPlacePrefab != null)
-            {
-                s_TapToPlaceBBlock = new PrefabCreatorBuildingBlock(s_CoachUITapToPlacePrefab, k_CoachUITapToPlaceBBlockName, "");
-                return s_TapToPlaceBBlock;
-            }
-
-            const string error = "Couldn't find Tap To Place prefab asset at " + k_CoachingUITapToPlacePrefabPath;
-            Debug.LogError(error);
-            return null;
-        }
-
-        static PrefabCreatorBuildingBlock GenerateScanForSurfaceBuildingBlock()
-        {
-            if (s_CoachUIScanSurfacePrefab == null)
-                s_CoachUIScanSurfacePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(k_CoachUIScanSurfacePrefabPath);
-
-            if (s_CoachUIScanSurfacePrefab != null)
-            {
-                s_ScanSurfaceBBlock = new PrefabCreatorBuildingBlock(s_CoachUIScanSurfacePrefab, k_CoachUIScanSurfaceBBlockName, "");
-                return s_ScanSurfaceBBlock;
-            }
-
-            const string error = "Couldn't find Scan for Surface prefab asset at " + k_CoachUIScanSurfacePrefabPath;
-            Debug.LogError(error);
-            return null;
         }
     }
 }

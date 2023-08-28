@@ -3,7 +3,7 @@ using Unity.XR.CoreUtils.Capabilities;
 namespace Unity.PolySpatial.XR.Capabilities
 {
     /// <summary>
-    /// Class that defines the Bubble capability keys.
+    /// Class that defines the PolySpatial XR capability keys.
     /// </summary>
     public static class PolySpatialXRInputCapabilityKeys
     {
@@ -11,6 +11,6 @@ namespace Unity.PolySpatial.XR.Capabilities
         /// The World Touch Input capability.
         /// </summary>
         [CustomCapabilityKey(100)]
-        public const string WorldTouch = "Bubblegum/World Touch";
+        public const string WorldTouch = "PolySpatialXR/World Touch";
     }
 }

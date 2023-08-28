@@ -1,12 +1,15 @@
 using Unity.XR.CoreUtils.Capabilities;
 using UnityEngine;
 
-namespace UnityEditor.PolySpatial.XR.Capabilities
+namespace Unity.PolySpatial.XR.Capabilities
 {
     /// <summary>
-    /// Class that represents a Bubblegum capability profile.
+    /// Class that represents a PolySpatial VR capability profile.
     /// </summary>
-    class PolySpatialXRVRCapabilityProfile : CapabilityProfile, ICapabilityModifier
+#if POLYSPATIAL_INTERNAL
+    [CreateAssetMenu(menuName = "PolySpatial/PolySpatialVRCapabilityProfileTest")]
+#endif
+    public class PolySpatialVRCapabilityProfile : CapabilityProfile, ICapabilityModifier
     {
         [SerializeField]
         CapabilityDictionary m_Capabilities;

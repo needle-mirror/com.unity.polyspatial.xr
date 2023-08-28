@@ -1,11 +1,13 @@
 using System;
+using Unity.XR.CoreUtils.Capabilities;
+using Unity.XR.CoreUtils.Capabilities.Editor;
 using UnityEditor.PackageManager.UI;
 using Unity.XR.CoreUtils.Editor.BuildingBlocks;
 using UnityEngine;
 
 namespace UnityEditor.PolySpatial.XR.BuildingBlocks
 {
-    class CreateHandTrackingVisualizationBlock : IBuildingBlock
+    class CreateHandTrackingVisualizationBlock : ScriptableSingleton<CreateHandTrackingVisualizationBlock>, IBuildingBlock
     {
         const string k_Id = "Hand Tracking visualization";
         const string k_BuildingBlockPath = "GameObject/XR/Setup/" + k_Id;
@@ -14,6 +16,13 @@ namespace UnityEditor.PolySpatial.XR.BuildingBlocks
         
         const int k_SectionPriority = 10;
 
+        /// <inheritdoc cref="IBuildingBlock.IsEnabled"/>
+        public bool IsEnabled => !BuildingBlockUtils.ThereAreCapabilityProfilesSelected() ||
+                                 CapabilityProfileSelection.IsCapabilityAvailableInSelectedProfiles(StandardCapabilityKeys.HandsInput);
+
+        /// <inheritdoc cref="IBuildingBlock.Tooltip"/>
+        public string Tooltip => IsEnabled ? k_Id : BuildingBlockUtils.GenerateMissingCapabilitiesRequiredTooltip(new[] {StandardCapabilityKeys.HandsInput});
+        
         public string Id => k_Id;
         public string IconPath => EditorGUIUtility.isProSkin ? k_DarkIconPath : k_LightIconPath;
         
@@ -27,11 +36,7 @@ namespace UnityEditor.PolySpatial.XR.BuildingBlocks
         
         /// <inheritdoc cref="ExecuteBuildingBlock"/>
         public void ExecuteBuildingBlock() => InstantiateBuildingBlock();
-        
-        /// Each building block should have an accompanying MenuItem, we add them here.
-        [MenuItem(k_BuildingBlockPath, false, k_SectionPriority)]
-        public static void ExecuteMenuItem(MenuCommand command) => InstantiateBuildingBlock();
-        
+
         static void InstantiateBuildingBlock()
         {
             var packageSamples = Sample.FindByPackage(k_PackageName, String.Empty);
@@ -76,5 +81,12 @@ namespace UnityEditor.PolySpatial.XR.BuildingBlocks
             Selection.activeGameObject = handVisualizerGO as GameObject;
             Undo.RegisterCreatedObjectUndo (handVisualizerGO, "Created Hand Visualizer GO");
         }
+        
+        /// Each building block should have an accompanying MenuItem, we add them here.
+        [MenuItem(k_BuildingBlockPath, false, k_SectionPriority)]
+        public static void ExecuteMenuItem(MenuCommand command) => InstantiateBuildingBlock();
+        
+        [MenuItem(k_BuildingBlockPath, true)]
+        static bool ExecuteMenuItemValidation() => instance.IsEnabled;
     }
 }

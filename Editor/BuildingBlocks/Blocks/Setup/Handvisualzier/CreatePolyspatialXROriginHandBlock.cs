@@ -1,22 +1,31 @@
 using System;
 using System.IO;
+using Unity.XR.CoreUtils.Capabilities;
+using Unity.XR.CoreUtils.Capabilities.Editor;
 using UnityEditor.PackageManager.UI;
 using Unity.XR.CoreUtils.Editor.BuildingBlocks;
 using UnityEngine;
 
 namespace UnityEditor.PolySpatial.XR.BuildingBlocks
 {
-    class CreatePolySpatialXROriginHandBlock : IBuildingBlock
+    class CreatePolySpatialXROriginHandBlock : ScriptableSingleton<CreatePolySpatialXROriginHandBlock>, IBuildingBlock
     {
-        const string k_Id = "XR Origin Hands PolySpatial";
+        const string k_Id = "XR Origin Hands Polyspatial";
         const string k_BuildingBlockPath = "GameObject/XR/Setup/" + k_Id;
-        const string k_LightIconPath = "Packages/com.unity.polyspatial.xr/Editor/BuildingBlocks/Icons/Blocks/Setup/Light/XROriginHandsPolySpatial.png";
-        const string k_DarkIconPath = "Packages/com.unity.polyspatial.xr/Editor/BuildingBlocks/Icons/Blocks/Setup/Dark/XROriginHandsPolySpatial.png";
+        const string k_LightIconPath = "Packages/com.unity.polyspatial.xr/Editor/BuildingBlocks/Icons/Blocks/Setup/Light/XROriginHandsPolyspatial.png";
+        const string k_DarkIconPath = "Packages/com.unity.polyspatial.xr/Editor/BuildingBlocks/Icons/Blocks/Setup/Dark/XROriginHandsPolyspatial.png";
         
         const int k_SectionPriority = 10;
-
+        
         public string Id => k_Id;
         public string IconPath => EditorGUIUtility.isProSkin ? k_DarkIconPath : k_LightIconPath;
+
+        /// <inheritdoc cref="IBuildingBlock.IsEnabled"/>
+        public bool IsEnabled => !BuildingBlockUtils.ThereAreCapabilityProfilesSelected() ||
+                                 CapabilityProfileSelection.IsCapabilityAvailableInSelectedProfiles(StandardCapabilityKeys.HandsInput);
+
+        /// <inheritdoc cref="IBuildingBlock.Tooltip"/>
+        public string Tooltip => IsEnabled ? k_Id : BuildingBlockUtils.GenerateMissingCapabilitiesRequiredTooltip(new[] {StandardCapabilityKeys.HandsInput});
         
         const string k_XRIPackageName = "com.unity.xr.interaction.toolkit";
         const string k_HandsPackageName = "com.unity.xr.hands";
@@ -28,10 +37,6 @@ namespace UnityEditor.PolySpatial.XR.BuildingBlocks
 
         /// <inheritdoc cref="ExecuteBuildingBlock"/>
         public void ExecuteBuildingBlock() => InstantiateBuildingBlock();
-        
-        /// Each building block should have an accompanying MenuItem, we add them here.
-        [MenuItem(k_BuildingBlockPath, false, k_SectionPriority)]
-        public static void ExecuteMenuItem(MenuCommand command) => InstantiateBuildingBlock();
 
         static void InstantiateBuildingBlock()
         {
@@ -119,5 +124,11 @@ namespace UnityEditor.PolySpatial.XR.BuildingBlocks
             Selection.activeGameObject = xrOriginHandsPolySpatialGO;
             Undo.RegisterCreatedObjectUndo(xrOriginHandsPolySpatialGO, "Created XR Origin Hands PolySpatial GameObject");
         }
+        
+        /// Each building block should have an accompanying MenuItem, we add them here.
+        [MenuItem(k_BuildingBlockPath, false, k_SectionPriority)]
+        public static void ExecuteMenuItem(MenuCommand command) => InstantiateBuildingBlock();
+        [MenuItem(k_BuildingBlockPath, true)]
+        static bool ExecuteMenuItemValidation() => instance.IsEnabled;
     }
 }

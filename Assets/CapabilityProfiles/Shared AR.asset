@@ -18,5 +18,5 @@ MonoBehaviour:
       Value: 0
     - Key: Hands Input
       Value: 0
-    - Key: Bubblegum/World Touch
+    - Key: PolySpatialXR/World Touch
       Value: 1

@@ -7,7 +7,7 @@ using UnityEngine.XR.Interaction.Toolkit;
 namespace UnityEditor.PolySpatial.XR.Validation
 {
     /// <summary>
-    /// Class that adds Bubblegum validations for components in the loaded scenes.
+    /// Class that adds PolySpatial XR validations for components in the loaded scenes.
     /// </summary>
     static class PolySpatialXRSceneValidator
     {
