@@ -31,10 +31,26 @@ namespace UnityEditor.PolySpatial.XR.BuildingBlocks
         const string k_CoachUIScanSurfaceBBlockName = "Scan Surface Coach UI";
         static PrefabCreatorBuildingBlock s_ScanSurfaceBBlock;
 
+        [MenuItem(k_CoachUIScanForSurfaceBBlockMenuPath, true)]
+        static bool ExecuteScanForSurfaceMenuItemValidation()
+        {
+            if (s_ScanSurfaceBBlock == null)
+                InitializeBlocks();
+            return s_ScanSurfaceBBlock.IsEnabled;
+        }
+
         [MenuItem(k_CoachUIScanForSurfaceBBlockMenuPath, false, 1)]
         public static void ExecuteScanForSurfaceMenuItem(MenuCommand command)
         {
             s_ScanSurfaceBBlock.ExecuteBuildingBlock();
+        }
+
+        [MenuItem(k_CoachUITapToPlaceBBlockMenuPath, true)]
+        static bool ExecuteTapToPlaceMenuItemValidation()
+        {
+            if(s_TapToPlaceBBlock == null)
+                InitializeBlocks();
+            return s_TapToPlaceBBlock.IsEnabled;
         }
 
         [MenuItem(k_CoachUITapToPlaceBBlockMenuPath, false, 1)]
@@ -43,26 +59,29 @@ namespace UnityEditor.PolySpatial.XR.BuildingBlocks
             s_TapToPlaceBBlock.ExecuteBuildingBlock();
         }
 
-        public IEnumerable<IBuildingBlock> GetBuildingBlocks()
+        static void InitializeBlocks()
         {
-            var prefabBuildingBlocksList = new List<IBuildingBlock>();
-
-// TODO(LXR-2458): Restore this once 2.4.0-exp.3 has been published
-#if false
-            var tapToPlaceBuildingBlock = new PrefabCreatorBuildingBlock(k_CoachingUITapToPlacePrefabPath,
+            s_TapToPlaceBBlock = new PrefabCreatorBuildingBlock(k_CoachingUITapToPlacePrefabPath,
                 k_CoachUITapToPlaceBBlockName,
                 EditorGUIUtility.isProSkin ? k_CoachUITapToPlaceIconPathDark : k_CoachUITapToPlaceIconPathLight,
                 true,
                 k_CoachUITapToPlaceBBlockName);
-            prefabBuildingBlocksList.Add(tapToPlaceBuildingBlock);
-
-            var scanSurfaceBuildingBlock = new PrefabCreatorBuildingBlock(k_CoachUIScanSurfacePrefabPath,
-                k_CoachUIScanSurfaceBBlockName,
-                EditorGUIUtility.isProSkin ? k_CoachUIScanSurfaceIconPathDark : k_CoachUIScanSurfaceIconPathLight,
+            
+            s_ScanSurfaceBBlock = new PrefabCreatorBuildingBlock(k_CoachingUITapToPlacePrefabPath,
+                k_CoachUITapToPlaceBBlockName,
+                EditorGUIUtility.isProSkin ? k_CoachUITapToPlaceIconPathDark : k_CoachUITapToPlaceIconPathLight,
                 true,
-                k_CoachUIScanSurfaceBBlockName);
-            prefabBuildingBlocksList.Add(scanSurfaceBuildingBlock);
-#endif
+                k_CoachUITapToPlaceBBlockName);
+        }
+        
+        public IEnumerable<IBuildingBlock> GetBuildingBlocks()
+        {
+            var prefabBuildingBlocksList = new List<IBuildingBlock>();
+
+            InitializeBlocks();
+
+            prefabBuildingBlocksList.Add(s_TapToPlaceBBlock);
+            prefabBuildingBlocksList.Add(s_ScanSurfaceBBlock);
 
             return prefabBuildingBlocksList;
         }
