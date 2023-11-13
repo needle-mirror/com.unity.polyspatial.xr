@@ -4,8 +4,8 @@ using Unity.PolySpatial.Internals;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
+using UnityEngine.Serialization;
 using UnityEngine.XR.Interaction.Toolkit;
-using TouchPhase = UnityEngine.InputSystem.TouchPhase;
 
 namespace Unity.PolySpatial.XR.Input
 {
@@ -17,63 +17,46 @@ namespace Unity.PolySpatial.XR.Input
     /// </summary>
     public class XRTouchSpaceInteractor : XRBaseInteractor
     {
+        [FormerlySerializedAs("m_WorldTouch")]
         [SerializeField]
-        InputActionReference m_WorldTouch;
+        InputActionReference m_SpatialPointer;
 
-        [SerializeField]
-        InputActionReference m_Touch;
-
-        WorldTouchState m_WorldPositionState;
-        TouchState m_TouchState;
+        SpatialPointerState m_SpatialPointerState;
 
         protected override void Start()
         {
             base.Start();
-            InputSystemUtility.Subscribe(m_WorldTouch, OnWorldTouchPerformed, OnWorldTouchCancelled);
-            InputSystemUtility.Subscribe(m_Touch, OnTouchPerformed, OnTouchCancelled);
+            InputSystemUtility.Subscribe(m_SpatialPointer, OnWorldTouchPerformed, OnWorldTouchCancelled);
         }
 
         protected override void OnDestroy()
         {
-            InputSystemUtility.Unsubscribe(m_WorldTouch, OnWorldTouchPerformed, OnWorldTouchCancelled);
-            InputSystemUtility.Unsubscribe(m_Touch, OnTouchPerformed, OnTouchCancelled);
+            InputSystemUtility.Unsubscribe(m_SpatialPointer, OnWorldTouchPerformed, OnWorldTouchCancelled);
             base.OnDestroy();
         }
 
         void OnWorldTouchPerformed(InputAction.CallbackContext context)
         {
-            m_WorldPositionState = context.ReadValue<WorldTouchState>();
-            transform.position = m_WorldPositionState.worldPosition;
+            m_SpatialPointerState = context.ReadValue<SpatialPointerState>();
+            transform.position = m_SpatialPointerState.interactionPosition;
         }
 
         void OnWorldTouchCancelled(InputAction.CallbackContext context)
         {
-            m_WorldPositionState = context.ReadValue<WorldTouchState>();
-        }
-
-        void OnTouchPerformed(InputAction.CallbackContext context)
-        {
-            m_TouchState = context.ReadValue<TouchState>();
-        }
-
-        void OnTouchCancelled(InputAction.CallbackContext context)
-        {
-            m_TouchState = context.ReadValue<TouchState>();
+            m_SpatialPointerState = context.ReadValue<SpatialPointerState>();
         }
 
         public override bool isSelectActive
         {
             get
             {
-                switch (m_TouchState.phase)
+                switch (m_SpatialPointerState.phase)
                 {
-                    case TouchPhase.Began:
-                    case TouchPhase.Moved:
-                    case TouchPhase.Stationary:
+                    case SpatialPointerPhase.Began:
+                    case SpatialPointerPhase.Moved:
                         return base.isSelectActive;
-                    case TouchPhase.Canceled:
-                    case TouchPhase.Ended:
-                    case TouchPhase.None:
+                    case SpatialPointerPhase.Ended:
+                    case SpatialPointerPhase.None:
                         return false;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -94,16 +77,14 @@ namespace Unity.PolySpatial.XR.Input
         public override void GetValidTargets(List<IXRInteractable> targets)
         {
             targets.Clear();
-            switch (m_TouchState.phase)
+            switch (m_SpatialPointerState.phase)
             {
-                case TouchPhase.None:
+                case SpatialPointerPhase.None:
                     break;
-                case TouchPhase.Began:
-                case TouchPhase.Moved:
-                case TouchPhase.Stationary:
-                case TouchPhase.Canceled:
-                case TouchPhase.Ended:
-                    if (TryGetInteractable(m_WorldPositionState.colliderId, out var interactable))
+                case SpatialPointerPhase.Began:
+                case SpatialPointerPhase.Moved:
+                case SpatialPointerPhase.Ended:
+                    if (TryGetInteractable(m_SpatialPointerState.targetId, out var interactable))
                         targets.Add(interactable);
                     break;
                 default:
@@ -111,7 +92,7 @@ namespace Unity.PolySpatial.XR.Input
             }
         }
 
-        bool TryGetInteractable(int colliderId, out XRBaseInteractable interactable)
+        static bool TryGetInteractable(int colliderId, out XRBaseInteractable interactable)
         {
             // Must get GO but seems can get collider directly at some point once PolySpatialInstanceIds of components are stored
             var go = ObjectBridge.FindObjectFromInstanceID(colliderId) as GameObject;
