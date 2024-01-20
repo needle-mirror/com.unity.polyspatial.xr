@@ -9,7 +9,7 @@ namespace Unity.PolySpatial.XR.Capabilities
 #if POLYSPATIAL_INTERNAL
     [CreateAssetMenu(menuName = "PolySpatial/PolySpatialVRCapabilityProfileTest")]
 #endif
-    public class PolySpatialVRCapabilityProfile : CapabilityProfile, ICapabilityModifier
+    internal class PolySpatialVRCapabilityProfile : CapabilityProfile, ICapabilityModifier
     {
         [SerializeField]
         CapabilityDictionary m_Capabilities;

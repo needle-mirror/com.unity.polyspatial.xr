@@ -1,3 +1,4 @@
+#if HAS_XR_INTERACTION_TOOLKIT
 using Unity.PolySpatial.XR.Input;
 
 namespace UnityEditor.PolySpatial.XR.Input
@@ -23,3 +24,4 @@ namespace UnityEditor.PolySpatial.XR.Input
         }
     }
 }
+#endif

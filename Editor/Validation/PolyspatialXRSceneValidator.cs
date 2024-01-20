@@ -1,3 +1,4 @@
+#if HAS_XR_INTERACTION_TOOLKIT
 using System;
 using System.Collections.Generic;
 using Unity.XR.CoreUtils.Capabilities;
@@ -18,3 +19,4 @@ namespace UnityEditor.PolySpatial.XR.Validation
         }
     }
 }
+#endif

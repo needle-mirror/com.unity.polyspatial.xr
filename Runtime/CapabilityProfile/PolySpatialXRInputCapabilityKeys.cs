@@ -5,7 +5,7 @@ namespace Unity.PolySpatial.XR.Capabilities
     /// <summary>
     /// Class that defines the PolySpatial XR capability keys.
     /// </summary>
-    public static class PolySpatialXRInputCapabilityKeys
+    internal static class PolySpatialXRInputCapabilityKeys
     {
         /// <summary>
         /// The World Touch Input capability.

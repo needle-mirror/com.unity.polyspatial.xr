@@ -1,3 +1,4 @@
+#if HAS_XR_INTERACTION_TOOLKIT
 using System;
 using System.Collections.Generic;
 using Unity.PolySpatial.Internals;
@@ -107,3 +108,4 @@ namespace Unity.PolySpatial.XR.Input
         }
     }
 }
+#endif

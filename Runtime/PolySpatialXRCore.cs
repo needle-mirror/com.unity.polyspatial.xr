@@ -1,9 +1,10 @@
+#if POLYSPATIAL_INTERNAL
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.PolySpatial.XR.Internals;
 using Unity.PolySpatial;
-using Unity.PolySpatial.Internal.Subsystems;
+using Unity.PolySpatial.Internals.Subsystems;
 using Unity.PolySpatial.Internals;
 using UnityEngine;
 
@@ -75,3 +76,4 @@ namespace Unity.PolySpatial.XR.Internals
         }
     }
 }
+#endif
