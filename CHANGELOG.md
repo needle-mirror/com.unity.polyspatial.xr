@@ -7,6 +7,64 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.1.4] - 2024-02-26
+
+### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [1.1.3] - 2024-02-22
+
+### Added
+
+### Changed
+- Update min Unity version to 2022.3.19f1
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [1.1.2] - 2024-02-21
+
+### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [1.1.1] - 2024-02-15
+
+### Added
+- Added object rotation for XR Touch Space Interactor based on the Spatial Pointer State input device rotation.
+### Changed
+- Renamed the Capability Profiles to match the App Mode options in the Apple VisionOS plug-in settings.
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
 ## [1.0.3] - 2024-01-20
 
 ### Added

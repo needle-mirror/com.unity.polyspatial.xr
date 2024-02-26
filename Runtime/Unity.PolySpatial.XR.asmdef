@@ -22,9 +22,9 @@
     "defineConstraints": [],
     "versionDefines": [
         {
-        "name": "com.unity.xr.interaction.toolkit",
-        "expression": "2.5.2",
-        "define": "HAS_XR_INTERACTION_TOOLKIT"
+            "name": "com.unity.xr.interaction.toolkit",
+            "expression": "2.5.2",
+            "define": "HAS_XR_INTERACTION_TOOLKIT"
         }
     ],
     "noEngineReferences": false

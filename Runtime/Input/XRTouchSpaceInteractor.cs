@@ -40,6 +40,7 @@ namespace Unity.PolySpatial.XR.Input
         {
             m_SpatialPointerState = context.ReadValue<SpatialPointerState>();
             transform.position = m_SpatialPointerState.interactionPosition;
+            transform.rotation = m_SpatialPointerState.inputDeviceRotation;
         }
 
         void OnWorldTouchCancelled(InputAction.CallbackContext context)
