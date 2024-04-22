@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Unity.Collections;
 using Unity.PolySpatial.Internals;
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
@@ -27,7 +26,7 @@ namespace Unity.PolySpatial.XR.Internals
         ARPlaneManager m_PlaneManager;
 
         // This is invoked each frame on `Update` from ARPlaneManager
-        void OnPlanesChanged(ARPlanesChangedEventArgs planeChanges)
+        void OnTrackablesChanged(ARTrackablesChangedEventArgs<ARPlane> planeChanges)
         {
             CheckAndSendChanges(planeChanges.added, planeChanges.updated, planeChanges.removed);
         }
@@ -53,7 +52,7 @@ namespace Unity.PolySpatial.XR.Internals
                 },
                 alignment = (PlaneAlignment)plane.alignment,
                 arTrackingState = (ARTrackingState)plane.trackingState,
-                arClassification = (ARPlaneClassification)plane.classification,
+                arClassification = (uint)plane.classifications,
                 center = plane.centerInPlaneSpace,
                 position = planeTransform.localPosition,
                 rotation = planeTransform.localRotation,
@@ -77,7 +76,7 @@ namespace Unity.PolySpatial.XR.Internals
             if (m_PlaneManager == null)
                 return;
 
-            m_PlaneManager.planesChanged += OnPlanesChanged;
+            m_PlaneManager.trackablesChanged.AddListener(OnTrackablesChanged);
 
             PolySpatialARPlaneArray planeEngineData = new ();
             planeEngineData.planes = new List<PolySpatialARPlane>();
@@ -103,15 +102,14 @@ namespace Unity.PolySpatial.XR.Internals
         {
             m_HostConnected = false;
             if (m_PlaneManager != null)
-                m_PlaneManager.planesChanged -= OnPlanesChanged;
-
+                m_PlaneManager.trackablesChanged.RemoveListener(OnTrackablesChanged);
         }
 
         /// <summary>
         /// Update loop for sending ARPlane data to the PolySpatial Host, the ARPlane data gets updated once per frame
         /// from the OnPlanesChanged event (from the <see cref="ARPlaneManager"/> Component).
         /// </summary>
-        void CheckAndSendChanges(List<ARPlane> added, List<ARPlane> updated, List<ARPlane> removed)
+        void CheckAndSendChanges(IReadOnlyCollection<ARPlane> added, IReadOnlyCollection<ARPlane> updated, IReadOnlyCollection<KeyValuePair<TrackableId, ARPlane>> removed)
         {
             if (!m_HostConnected)
                 return;
@@ -120,7 +118,7 @@ namespace Unity.PolySpatial.XR.Internals
             planeEngineData.planes = new List<PolySpatialARPlane>();
 
             foreach (var plane in removed)
-                planeEngineData.planes.Add(CreatePolySpatialARPlane(plane, ARPlaneOperation.Removed));
+                planeEngineData.planes.Add(CreatePolySpatialARPlane(plane.Value, ARPlaneOperation.Removed));
 
             foreach (var plane in added)
                 planeEngineData.planes.Add(CreatePolySpatialARPlane(plane, ARPlaneOperation.Created));
@@ -138,7 +136,7 @@ namespace Unity.PolySpatial.XR.Internals
         public void Dispose()
         {
             if (m_PlaneManager != null)
-                m_PlaneManager.planesChanged -= OnPlanesChanged;
+                m_PlaneManager.trackablesChanged.RemoveListener(OnTrackablesChanged);
         }
     }
 }

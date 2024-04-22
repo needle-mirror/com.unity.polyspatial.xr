@@ -5,7 +5,7 @@ using UnityEngine.XR.ARSubsystems;
 using Unity.PolySpatial.Internals;
 
 using PlaneAlignment = UnityEngine.XR.ARSubsystems.PlaneAlignment;
-using PlaneClassification = UnityEngine.XR.ARSubsystems.PlaneClassification;
+using PlaneClassifications = UnityEngine.XR.ARSubsystems.PlaneClassifications;
 using TrackingState = UnityEngine.XR.ARSubsystems.TrackingState;
 
 namespace Unity.PolySpatial.XR.Internals.Subsystems
@@ -24,7 +24,7 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
                 Vector2.zero,
                 PlaneAlignment.None,
                 TrackingState.None,
-                PlaneClassification.None,
+                PlaneClassifications.None,
                 default);
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
         Vector2 m_Size;
         PlaneAlignment m_Alignment;
         TrackingState m_TrackingState;
-        PlaneClassification m_Classification;
+        PlaneClassifications m_Classification;
         NativeArray<Vector2> m_Vertices;
 
         /// <summary>
@@ -81,9 +81,9 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
         internal TrackingState trackingState => m_TrackingState;
 
         /// <summary>
-        /// The <see cref="PlaneClassification"/> of the plane.
+        /// The <see cref="PlaneClassifications"/> of the plane.
         /// </summary>
-        internal PlaneClassification classification => m_Classification;
+        internal PlaneClassifications classification => m_Classification;
 
         /// <summary>
         /// Creates a read-only alias to the <c>NativeArray</c> of the boundary vertices.
@@ -127,7 +127,7 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
             Vector2 size,
             PlaneAlignment alignment,
             TrackingState trackingState,
-            PlaneClassification classification,
+            PlaneClassifications classification,
             NativeArray<Vector2> vertices)
         {
             m_TrackableId = trackableId;
@@ -156,7 +156,7 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
             m_Size = arPlaneInfo.size.HasValue ? arPlaneInfo.size.Value : default(Vector2);
             m_Alignment = (PlaneAlignment)arPlaneInfo.alignment;
             m_TrackingState = (TrackingState)arPlaneInfo.arTrackingState;
-            m_Classification = (PlaneClassification)arPlaneInfo.arClassification;
+            m_Classification = (PlaneClassifications)arPlaneInfo.arClassification;
             m_Vertices = arPlaneInfo.vertices.HasValue ? new NativeArray<Vector2>(arPlaneInfo.vertices.Value, Allocator.Persistent) : default;
         }
 

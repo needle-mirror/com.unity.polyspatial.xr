@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.Serialization;
-using UnityEngine.XR.Interaction.Toolkit;
+
 
 namespace Unity.PolySpatial.XR.Input
 {
@@ -16,7 +16,7 @@ namespace Unity.PolySpatial.XR.Input
     /// WorldTouchState struct. This evades re-raycasting inside the app
     /// to determine what collider was interacted with.
     /// </summary>
-    public class XRTouchSpaceInteractor : XRBaseInteractor
+    public class XRTouchSpaceInteractor : UnityEngine.XR.Interaction.Toolkit.Interactors.XRBaseInteractor
     {
         [FormerlySerializedAs("m_WorldTouch")]
         [SerializeField]
@@ -66,17 +66,17 @@ namespace Unity.PolySpatial.XR.Input
             }
         }
 
-        public override bool CanHover(IXRHoverInteractable interactable)
+        public override bool CanHover(UnityEngine.XR.Interaction.Toolkit.Interactables.IXRHoverInteractable interactable)
         {
             return base.CanHover(interactable) && (!hasSelection || IsSelecting(interactable));
         }
 
-        public override bool CanSelect(IXRSelectInteractable interactable)
+        public override bool CanSelect(UnityEngine.XR.Interaction.Toolkit.Interactables.IXRSelectInteractable interactable)
         {
             return base.CanSelect(interactable) && (!hasSelection || IsSelecting(interactable));
         }
 
-        public override void GetValidTargets(List<IXRInteractable> targets)
+        public override void GetValidTargets(List<UnityEngine.XR.Interaction.Toolkit.Interactables.IXRInteractable> targets)
         {
             targets.Clear();
             switch (m_SpatialPointerState.phase)
@@ -94,7 +94,7 @@ namespace Unity.PolySpatial.XR.Input
             }
         }
 
-        static bool TryGetInteractable(long colliderId, out XRBaseInteractable interactable)
+        static bool TryGetInteractable(long colliderId, out UnityEngine.XR.Interaction.Toolkit.Interactables.XRBaseInteractable interactable)
         {
             // Must get GO but seems can get collider directly at some point once PolySpatialInstanceIds of components are stored
             var go = ObjectBridge.FindObjectFromInstanceID(colliderId) as GameObject;
@@ -104,7 +104,7 @@ namespace Unity.PolySpatial.XR.Input
                 return false;
             }
 
-            interactable = go.GetComponent<XRBaseInteractable>();
+            interactable = go.GetComponent<UnityEngine.XR.Interaction.Toolkit.Interactables.XRBaseInteractable>();
             return interactable != null;
         }
     }

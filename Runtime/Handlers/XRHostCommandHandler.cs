@@ -27,7 +27,7 @@ namespace Unity.PolySpatial.XR.Internals
                 if (m_PolySpatialXRPlaneSubsystem == null)
                 {
                     m_PlaneSubsystems.Clear();
-                    SubsystemManager.GetInstances(m_PlaneSubsystems);
+                    SubsystemManager.GetSubsystems(m_PlaneSubsystems);
 
                     if (m_PlaneSubsystems.Count == 0)
                         return null;

@@ -250,8 +250,7 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
                 supportsArbitraryPlaneDetection = false,
                 supportsBoundaryVertices = true
             };
-
-            XRPlaneSubsystemDescriptor.Create(cinfo);
+            XRPlaneSubsystemDescriptor.Register(cinfo);
         }
     }
 }

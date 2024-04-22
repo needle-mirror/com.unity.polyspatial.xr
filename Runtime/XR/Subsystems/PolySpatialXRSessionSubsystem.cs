@@ -40,7 +40,7 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void RegisterDescriptor()
         {
-            XRSessionSubsystemDescriptor.RegisterDescriptor(new XRSessionSubsystemDescriptor.Cinfo
+            XRSessionSubsystemDescriptor.Register(new XRSessionSubsystemDescriptor.Cinfo
             {
                 id = k_SubsystemId,
                 providerType = typeof(PolySpatialXRSessionProvider),
