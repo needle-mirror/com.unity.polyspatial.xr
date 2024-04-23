@@ -7,19 +7,18 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [1.1.6] - 2024-03-12
+## [1.2.3] - 2024-04-23
+
+## [1.2.2] - 2024-04-22
+
+## [1.2.1] - 2024-04-22
+
+## [1.2.0] - 2024-04-19
 
 ### Added
+- Added a "PolySpatial XR" Plug-in Provider to XR Plug-in Managment in Project Settings.  Allows you to view ARPlane's and hands from device in editor while using Play To Device.
 
-### Changed
-
-### Deprecated
-
-### Removed
-
-### Fixed
-
-### Security
+## [1.1.6] - 2024-03-12
 
 ## [1.1.4] - 2024-02-26
 

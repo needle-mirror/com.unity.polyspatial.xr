@@ -1,11 +1,7 @@
-#if POLYSPATIAL_INTERNAL
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using Unity.PolySpatial.XR.Internals;
-using Unity.PolySpatial;
-using Unity.PolySpatial.Internals.Subsystems;
 using Unity.PolySpatial.Internals;
+using Unity.PolySpatial.Internals.Subsystems;
 using UnityEngine;
 
 namespace Unity.PolySpatial.XR.Internals
@@ -15,12 +11,36 @@ namespace Unity.PolySpatial.XR.Internals
     /// Add all the handlers for the commands that are supported by the PolySpatialXRCore, and
     /// add all the trackers necessary for tracking changes from XR components and events.
     /// </summary>
-    internal class PolySpatialXRCore : PolySpatialSubsystemBase
+    class PolySpatialXRCore : PolySpatialSubsystemBase
     {
-        const string k_SubsystemId = "PolySpatialXRCore_Subsystem";
+        internal const string k_SubsystemId = "PolySpatialXRCore_Subsystem";
 
-        private List<IPolySpatialCommandHandler> m_CommandHandlers = new List<IPolySpatialCommandHandler>();
-        private List<IPolySpatialHostCommandHandler> m_HostCommandHandlers = new List<IPolySpatialHostCommandHandler>();
+        internal class ARData : IDisposable
+        {
+            internal PolySpatialARPlaneTracker m_ARPlaneTracker;
+            internal PolySpatialXRHandTracker m_XRHandTracker;
+
+            internal void Update()
+            {
+                // No need to call Update for m_ARPlaneTracker, it gets all its updates from a callback
+                // only when the set of ARPlanes changes.
+                m_XRHandTracker.Update();
+            }
+
+            public void Dispose()
+            {
+                m_ARPlaneTracker.Dispose();
+                m_ARPlaneTracker = null;
+
+                m_XRHandTracker.Dispose();
+                m_XRHandTracker = null;
+            }
+        }
+
+        List<IPolySpatialHostCommandHandler> m_HostCommandHandlers = new ();
+        XRLocalCommandHandler m_XRLocalCommandHandler;
+
+        internal ARData m_ARSessionData;
 
         public PolySpatialXRCore() : base(k_SubsystemId)
         {
@@ -31,22 +51,23 @@ namespace Unity.PolySpatial.XR.Internals
         /// </summary>
         internal override void Initialize()
         {
-            AddLocalCommandHandlers();
+            m_ARSessionData = new ARData();
 
-            if(PolySpatialCore.CurrentNetworkingMode == PolySpatialSettings.NetworkingMode.LocalAndClient)
-            {
+            m_ARSessionData.m_ARPlaneTracker = new PolySpatialARPlaneTracker();
+            m_ARSessionData.m_XRHandTracker = new PolySpatialXRHandTracker();
+
+            if (PolySpatialCore.CurrentNetworkingMode == PolySpatialSettings.NetworkingMode.LocalAndClient)
                 AddHostCommandHandlers();
-            }
+
+            // PolySpatialNetworkSingleAppHost does not exist when we initialize.  We can't register a IPolySpatialCommandHandler until it exists.
+            PolySpatialNetworkAppHostBase.OnEnableCommandHandlers += AddLocalCommandHandler;
         }
 
-        /// <summary>
-        /// Add the handlers on the Host
-        /// </summary>
-        void AddLocalCommandHandlers()
+        void AddLocalCommandHandler(PolySpatialNetworkAppHostBase appHost)
         {
-            var xrhandler = new XRLocalCommandHandler();
-            xrhandler.Initialize();
-            m_CommandHandlers.Add(xrhandler);
+            m_XRLocalCommandHandler = new();
+            m_XRLocalCommandHandler.NextHandler = appHost.NextHandler;
+            appHost.NextHandler = m_XRLocalCommandHandler;
         }
 
         /// <summary>
@@ -54,9 +75,9 @@ namespace Unity.PolySpatial.XR.Internals
         /// </summary>
         void AddHostCommandHandlers()
         {
-            var xrhosthandler = new XRHostCommandHandler();
-            xrhosthandler.Initialize();
-            m_HostCommandHandlers.Add(xrhosthandler);
+            var commandHandler = new XRHostCommandHandler();
+            commandHandler.Initialize();
+            m_HostCommandHandlers.Add(commandHandler);
         }
 
         /// <summary>
@@ -64,16 +85,22 @@ namespace Unity.PolySpatial.XR.Internals
         /// </summary>
         public override void Dispose()
         {
-            foreach (var handler in m_CommandHandlers)
-            {
+            foreach (var handler in m_HostCommandHandlers)
                 (handler as IDisposable)?.Dispose();
+
+            if (m_ARSessionData != null)
+            {
+                m_ARSessionData.Dispose();
+                m_ARSessionData = null;
             }
 
-            foreach (var handler in m_HostCommandHandlers)
-            {
-                (handler as IDisposable)?.Dispose();
-            }
+            PolySpatialNetworkAppHostBase.OnEnableCommandHandlers -= AddLocalCommandHandler;
+        }
+
+        internal override void Update()
+        {
+            m_ARSessionData?.Update();
         }
     }
 }
-#endif
+

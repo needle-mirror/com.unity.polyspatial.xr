@@ -94,7 +94,7 @@ namespace Unity.PolySpatial.XR.Input
             }
         }
 
-        static bool TryGetInteractable(int colliderId, out XRBaseInteractable interactable)
+        static bool TryGetInteractable(long colliderId, out XRBaseInteractable interactable)
         {
             // Must get GO but seems can get collider directly at some point once PolySpatialInstanceIds of components are stored
             var go = ObjectBridge.FindObjectFromInstanceID(colliderId) as GameObject;
