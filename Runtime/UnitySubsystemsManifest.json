@@ -1,0 +1,10 @@
+{
+    "name": "PolySpatial XR Plug-in",
+    "version": "1.0.0",
+    "libraryName": "PolySpatialXRPlugin",
+    "meshings": [
+        {
+            "id": "PolySpatialXR-Meshing"
+        }
+    ]
+}

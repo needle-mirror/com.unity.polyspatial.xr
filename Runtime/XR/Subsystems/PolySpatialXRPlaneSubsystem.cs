@@ -217,7 +217,7 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
             }
         }
 
-        public void InitializeClient(PolySpatialHostID hostID)
+        internal void InitializeClient(PolySpatialHostID hostID)
         {
             PolySpatialProvider?.InitializeClient(hostID);
         }

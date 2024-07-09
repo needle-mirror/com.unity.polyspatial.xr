@@ -14,14 +14,29 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
 
         class PolySpatialXRSessionProvider : Provider
         {
+            PolySpatialXRMeshSubsystemProcessor m_MeshSubsystemProcessor;
+            bool m_Initialized;
 
             public override TrackingState trackingState => TrackingState.Tracking;
 
             public override Promise<SessionAvailability> GetAvailabilityAsync() =>
                 Promise<SessionAvailability>.CreateResolvedPromise(SessionAvailability.Installed | SessionAvailability.Supported);
 
+            bool Initialize()
+            {
+                m_MeshSubsystemProcessor?.Dispose();
+                m_MeshSubsystemProcessor = new PolySpatialXRMeshSubsystemProcessor();
+
+                m_Initialized = true;
+                return true;
+            }
+
             public override void Start()
             {
+                if (!m_Initialized && !Initialize())
+                    return;
+
+                m_MeshSubsystemProcessor?.Start();
             }
 
             public override void Stop()
@@ -30,6 +45,17 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
 
             public override void Update(XRSessionUpdateParams updateParams)
             {
+            }
+
+            public override void Destroy()
+            {
+                if (m_MeshSubsystemProcessor != null)
+                {
+                    m_MeshSubsystemProcessor.Dispose();
+                    m_MeshSubsystemProcessor = null;
+                }
+
+                m_Initialized = false;
             }
         }
 

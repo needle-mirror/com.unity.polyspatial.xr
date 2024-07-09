@@ -1,6 +1,7 @@
 using System;
 using Unity.PolySpatial.Internals;
 using UnityEngine;
+using FlatSharp.Runtime.Extensions;
 
 namespace Unity.PolySpatial.XR.Internals
 {
@@ -16,6 +17,10 @@ namespace Unity.PolySpatial.XR.Internals
         PolySpatialARPlaneTracker ARPlaneTracker => Core.m_ARSessionData.m_ARPlaneTracker;
 
         PolySpatialXRHandTracker XRHandTracker => Core.m_ARSessionData.m_XRHandTracker;
+
+        PolySpatialXRMeshTracker XRMeshTracker => Core.m_ARSessionData.m_XRMeshTracker;
+
+        PolySpatialARImageTracker ARImageTracker => Core.m_ARSessionData.m_XRImageTracker;
 
         [NonSerialized]
         PolySpatialXRCore m_Core;
@@ -39,28 +44,53 @@ namespace Unity.PolySpatial.XR.Internals
             switch (cmd)
             {
                 case PolySpatialCommand.BeginConnection:
+                {
                     PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out PolySpatialInstanceID* id, out Span<byte> _);
-                    if (ARPlaneTracker != null)
+                    // Send the current state of the ARPlane tracking. ARPlane tracking state might be active when a Client connects.
+                    ARPlaneTracker.InitializeARPlanes(id->hostId);
+
+                    // Send the current state of the hand tracking. Hand tracking state might be active when a Client connects.
+                    XRHandTracker.InitHandTracking(id->hostId);
+
+                    ARImageTracker.InitializeARImageTracker(id->hostId);
+
+                    XRMeshTracker.InitializeXRMeshes(id->hostId);
+
+                    break;
+                }
+                case PolySpatialCommand.EndConnection:
+                {
+                    ARPlaneTracker.EndConnection();
+
+                    XRHandTracker.EndConnection();
+
+                    ARImageTracker.EndConnection();
+                    
+                    XRMeshTracker.EndConnection();
+
+                    break;
+                }
+                case PolySpatialCommand.CreateOrUpdateReferenceImageLibrary:
+                {
+                    PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out Span<byte> data);
+                    fixed (byte* p = data)
                     {
-                        // Send the current state of the ARPlane tracking. ARPlane tracking state might be active when a Client connects.
-                        ARPlaneTracker.InitializeARPlanes(id->hostId);
-                    }
-                    if (XRHandTracker != null) {
-                        // Send the current state of the hand tracking. Hand tracking state might be active when a Client connects.
-                        XRHandTracker.InitHandTracking(id->hostId);
+                        var referenceImageLibrary = PolySpatialReferenceImageLibrary.Serializer.Parse(data.Length, p);
+                        ARImageTracker.CreateOrUpdateReferenceImageLibrary(referenceImageLibrary);
                     }
 
                     break;
-                case PolySpatialCommand.EndConnection:
-                    if (ARPlaneTracker != null)
+                }
+                case PolySpatialCommand.AddTrackedImage:
+                {
+                    PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out Span<byte> data);
+                    fixed (byte* p = data)
                     {
-                        ARPlaneTracker.EndConnection();
-                    }
-                    if (XRHandTracker != null)
-                    {
-                        XRHandTracker.EndConnection();
+                        var image = PolySpatialXRReferenceImage.Serializer.Parse(data.Length, p);
+                        ARImageTracker.AddTrackedImage(image);
                     }
                     break;
+                }
             }
 
             NextHandler.HandleCommand(cmd, argCount, argValues, argSizes);
