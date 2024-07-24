@@ -9,8 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cb904569b2e764a7b9ba87377568227b, type: 3}
-  m_Name: visionOS MR - Full Immersive
+  m_Script: {fileID: 11500000, guid: 7ee00a9caae12a6438d43bc8e953eb26, type: 3}
+  m_Name: visionOS Metal
   m_EditorClassIdentifier: 
   m_Capabilities:
     m_Items:

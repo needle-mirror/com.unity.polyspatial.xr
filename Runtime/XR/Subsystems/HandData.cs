@@ -88,8 +88,9 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
                     data.linearVelocity.GetValueOrDefault(),
                     data.angularVelocity.GetValueOrDefault());
 #if INCLUDE_UNITY_XR_VISIONOS && UNITY_VISIONOS
-                    m_VisionOSRotations[index] = data.visionOSRotation ?? default;
-                    m_VisionOSTrackingStates[index] = data.visionOSTrackingState;
+                m_HandRotations[index] = data.visionOSRotation ?? default;
+                m_VisionOSRotations[index] = data.visionOSRotation ?? default;
+                m_VisionOSTrackingStates[index] = data.visionOSTrackingState;
 #endif
             }
 

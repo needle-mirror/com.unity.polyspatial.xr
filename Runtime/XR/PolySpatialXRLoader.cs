@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Unity.PolySpatial.XR.Internals.Subsystems;
 using UnityEngine;
+using UnityEngine.XR;
 using UnityEngine.XR.ARSubsystems;
 using UnityEngine.XR.Management;
 
@@ -18,11 +19,14 @@ namespace Unity.PolySpatial.XR.Internals
     {
         static List<XRSessionSubsystemDescriptor> s_SessionSubsystemDescriptors = new ();
         static List<XRPlaneSubsystemDescriptor> s_PlaneSubsystemDescriptors = new ();
+        static List<XRImageTrackingSubsystemDescriptor> s_ImageTrackingSubsystemDescriptors = new ();
 
 #if INCLUDE_UNITY_XR_HANDS
         static List<XRHandSubsystemDescriptor> s_HandSubsystemDescriptors = new ();
         XRHandProviderUtility.SubsystemUpdater m_HandSubsystemUpdater;
 #endif
+
+        static List<XRMeshSubsystemDescriptor> s_MeshSubsystemDescriptors = new();
 
         /// <summary>
         /// Initializes the loader.
@@ -32,6 +36,9 @@ namespace Unity.PolySpatial.XR.Internals
         {
             CreateSubsystem<XRSessionSubsystemDescriptor, XRSessionSubsystem>(s_SessionSubsystemDescriptors, PolySpatialXRSessionSubsystem.k_SubsystemId);
             CreateSubsystem<XRPlaneSubsystemDescriptor, XRPlaneSubsystem>(s_PlaneSubsystemDescriptors, PolySpatialXRPlaneSubsystem.k_SubsystemId);
+            CreateSubsystem<XRMeshSubsystemDescriptor, XRMeshSubsystem>(s_MeshSubsystemDescriptors, PolySpatialXRMeshSubsystemProcessor.k_SubsystemId);
+            CreateSubsystem<XRImageTrackingSubsystemDescriptor, XRImageTrackingSubsystem>(s_ImageTrackingSubsystemDescriptors,
+                PolySpatialXRImageTrackingSubsystem.k_SubsystemId);
 
             Logging.Log(LogCategory.XR, "Initialize PolySpatialXRLoader");
 
@@ -51,6 +58,8 @@ namespace Unity.PolySpatial.XR.Internals
             }
 #endif
 
+            Logging.Log(LogCategory.XR, "Initialize PolySpatialXRLoader");
+
             return sessionSubsystem != null;
         }
 
@@ -60,13 +69,15 @@ namespace Unity.PolySpatial.XR.Internals
         /// <returns>Always returns `true`.</returns>
         public override bool Deinitialize()
         {
-            DestroySubsystem<XRPlaneSubsystem>();
-            DestroySubsystem<XRSessionSubsystem>();
-
 #if INCLUDE_UNITY_XR_HANDS
             m_HandSubsystemUpdater?.Stop();
             DestroySubsystem<XRHandSubsystem>();
 #endif
+
+            DestroySubsystem<XRImageTrackingSubsystem>();
+            DestroySubsystem<XRMeshSubsystem>();
+            DestroySubsystem<XRPlaneSubsystem>();
+            DestroySubsystem<XRSessionSubsystem>();
 
             return true;
         }

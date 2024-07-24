@@ -7,6 +7,18 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [2.0.0-pre.9] - 2024-07-24
+
+### Added
+- Added support for tracked images over Play To Device.
+- Added support for XR Meshes over Play To Device.
+- Added Project Validation checks to enable the PolySpatial XR Plug-in Provider when Play To Device is enabled.
+- Added Project Validation checks to disable the XR Simulation Plug-in Provider when Play To Device is enabled.
+
+### Fixed
+- Fixed PolySpatial XR in Play To Device on TestFlight builds.  The PolySpatial XR name space was getting stripped out.
+- Fixed hands over P2D using PolySpatial XR.  Added INCLUDE_UNITY_XR_HANDS define to Unity.PolySpatial.XR.asmdef.
+
 ## [2.0.0-pre.3] - 2024-04-22
 
 ### Added

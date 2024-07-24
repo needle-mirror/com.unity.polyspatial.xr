@@ -9,7 +9,7 @@ namespace UnityEditor.PolySpatial.XR
     /// Settings for PolySpatial XR Plug-In for the XR Plug-In Management System.
     /// </summary>
     [Serializable]
-    [XRConfigurationData("Play To Device", k_SettingsKey)]
+    [XRConfigurationData("PolySpatial XR", k_SettingsKey)]
     class PolySpatialXRSettings : ScriptableObject
     {
         /// <summary>

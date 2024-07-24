@@ -4,6 +4,7 @@ using System.Linq;
 using Unity.Collections;
 using Unity.PolySpatial.Internals;
 using UnityEngine;
+using UnityEngine.Scripting;
 using UnityEngine.XR.ARSubsystems;
 
 namespace Unity.PolySpatial.XR.Internals.Subsystems
@@ -42,6 +43,7 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
     /// HostCommandHelper.InitARPlaneData
     /// HostCommandHelper.SetARPlaneData
     /// </summary>
+    [Preserve]
     class PolySpatialXRPlaneSubsystem : XRPlaneSubsystem
     {
         internal const string k_SubsystemId = "XRPolySpatial-Plane";
@@ -217,7 +219,7 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
             }
         }
 
-        public void InitializeClient(PolySpatialHostID hostID)
+        internal void InitializeClient(PolySpatialHostID hostID)
         {
             PolySpatialProvider?.InitializeClient(hostID);
         }

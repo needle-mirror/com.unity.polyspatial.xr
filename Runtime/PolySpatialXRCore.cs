@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.PolySpatial.Internals;
 using Unity.PolySpatial.Internals.Subsystems;
 using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace Unity.PolySpatial.XR.Internals
 {
@@ -11,6 +12,7 @@ namespace Unity.PolySpatial.XR.Internals
     /// Add all the handlers for the commands that are supported by the PolySpatialXRCore, and
     /// add all the trackers necessary for tracking changes from XR components and events.
     /// </summary>
+    [Preserve]
     class PolySpatialXRCore : PolySpatialSubsystemBase
     {
         internal const string k_SubsystemId = "PolySpatialXRCore_Subsystem";
@@ -19,12 +21,15 @@ namespace Unity.PolySpatial.XR.Internals
         {
             internal PolySpatialARPlaneTracker m_ARPlaneTracker;
             internal PolySpatialXRHandTracker m_XRHandTracker;
+            internal PolySpatialXRMeshTracker m_XRMeshTracker;
+            internal PolySpatialARImageTracker m_XRImageTracker;
 
             internal void Update()
             {
                 // No need to call Update for m_ARPlaneTracker, it gets all its updates from a callback
                 // only when the set of ARPlanes changes.
                 m_XRHandTracker.Update();
+                m_XRImageTracker.Update();
             }
 
             public void Dispose()
@@ -34,6 +39,12 @@ namespace Unity.PolySpatial.XR.Internals
 
                 m_XRHandTracker.Dispose();
                 m_XRHandTracker = null;
+
+                m_XRMeshTracker.Dispose();
+                m_XRMeshTracker = null;
+
+                m_XRImageTracker.Dispose();
+                m_XRImageTracker = null;
             }
         }
 
@@ -55,6 +66,8 @@ namespace Unity.PolySpatial.XR.Internals
 
             m_ARSessionData.m_ARPlaneTracker = new PolySpatialARPlaneTracker();
             m_ARSessionData.m_XRHandTracker = new PolySpatialXRHandTracker();
+            m_ARSessionData.m_XRMeshTracker = new PolySpatialXRMeshTracker();
+            m_ARSessionData.m_XRImageTracker = new PolySpatialARImageTracker();
 
             if (PolySpatialCore.CurrentNetworkingMode == PolySpatialSettings.NetworkingMode.LocalAndClient)
                 AddHostCommandHandlers();

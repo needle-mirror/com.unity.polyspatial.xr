@@ -4,12 +4,12 @@ using UnityEngine;
 namespace Unity.PolySpatial.XR.Capabilities
 {
     /// <summary>
-    /// Class that represents a PolySpatial VR capability profile.
+    /// Class that represents a PolySpatial Metal capability profile.
     /// </summary>
 #if POLYSPATIAL_INTERNAL
-    [CreateAssetMenu(menuName = "PolySpatial/PolySpatialVRCapabilityProfileTest")]
+    [CreateAssetMenu(menuName = "PolySpatial/PolySpatialMetalCapabilityProfileTest")]
 #endif
-    internal class PolySpatialVRCapabilityProfile : CapabilityProfile, ICapabilityModifier
+    class PolySpatialMetalCapabilityProfile : CapabilityProfile, ICapabilityModifier
     {
         [SerializeField]
         CapabilityDictionary m_Capabilities;

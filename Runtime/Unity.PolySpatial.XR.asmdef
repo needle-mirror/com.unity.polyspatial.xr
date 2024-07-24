@@ -1,33 +1,38 @@
 {
-    "name": "Unity.PolySpatial.XR",
-    "rootNamespace": "",
-    "references": [
-        "GUID:012dfb878e48c4762abf7b175b032488",
-        "GUID:4fe4a1be2f2c04eecbd2036d47b4b310",
-        "GUID:da6b7243646c148ecbb94c952f41b7a7",
-        "GUID:dc960734dc080426fa6612f1c5fe95f3",
-        "GUID:e0cd26848372d4e5c891c569017e11f1",
-        "GUID:a9420e37d7990b54abdef6688edbe313",
-        "GUID:92703082f92b41ba80f0d6912de66115",
-        "GUID:e40ba710768534012815d3193fa296cb",
-        "GUID:75469ad4d38634e559750d17036d5f7c",
-        "GUID:fe685ec1767f73d42b749ea8045bfe43",
-        "GUID:8d4048bf8d8343745bd8096dad98e775",
-        "GUID:ae3d1603ce9534ff5a9eb62408568574"
-    ],
-    "includePlatforms": [],
-    "excludePlatforms": [],
-    "allowUnsafeCode": true,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": [
-        {
-            "name": "com.unity.xr.interaction.toolkit",
-            "expression": "2.5.2",
-            "define": "HAS_XR_INTERACTION_TOOLKIT"
-        }
-    ],
-    "noEngineReferences": false
+  "name": "Unity.PolySpatial.XR",
+  "rootNamespace": "",
+  "references": [
+    "Unity.InternalAPIEngineBridge.021",
+    "Unity.PolySpatial",
+    "Unity.PolySpatial.Core",
+    "Unity.XR.CoreUtils",
+    "Unity.XR.ARFoundation",
+    "Unity.XR.ARSubsystems",
+    "Unity.XR.Management",
+    "Unity.InputSystem",
+    "Unity.XR.Interaction.Toolkit",
+    "Unity.XR.Hands",
+    "FlatSharp.Runtime.Extensions",
+    "Unity.XR.VisionOS"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": true,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [
+    {
+      "name": "com.unity.xr.hands",
+      "expression": "1.1",
+      "define": "INCLUDE_UNITY_XR_HANDS"
+    },
+    {
+      "name": "com.unity.xr.interaction.toolkit",
+      "expression": "2.5.2",
+      "define": "HAS_XR_INTERACTION_TOOLKIT"
+    }
+  ],
+  "noEngineReferences": false
 }

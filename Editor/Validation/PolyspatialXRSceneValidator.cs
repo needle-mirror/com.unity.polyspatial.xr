@@ -15,7 +15,9 @@ namespace UnityEditor.PolySpatial.XR.Validation
         [CustomValidation]
         static void AddValidations(List<ValueTuple<Type, IComponentRuleCreator>> ruleCreators, List<ValueTuple<Type, List<ITypeMessage>>> messages)
         {
+#pragma warning disable 618
             ruleCreators.Add(new(typeof(XRBaseController), new HasCapabilityRuleCreator(StandardCapabilityKeys.ControllersInput)));
+#pragma warning restore 618
         }
     }
 }

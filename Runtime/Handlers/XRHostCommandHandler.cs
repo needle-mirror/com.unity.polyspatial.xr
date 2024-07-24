@@ -17,8 +17,13 @@ namespace Unity.PolySpatial.XR.Internals
     class XRHostCommandHandler : IPolySpatialHostCommandHandler, IDisposable
     {
         PolySpatialXRPlaneSubsystem m_PolySpatialXRPlaneSubsystem;
-
         List<PolySpatialXRPlaneSubsystem> m_PlaneSubsystems = new (1);
+
+        PolySpatialXRImageTrackingSubsystem m_PolySpatialXRImageSubsystem;
+        List<PolySpatialXRImageTrackingSubsystem> m_ImageTrackingSubsystems = new (1);
+
+
+        PolySpatialXRMeshSubsystemProcessor m_PolySpatialARMeshSubsystemProcessor;
 
         PolySpatialXRPlaneSubsystem PolySpatialXRPlaneSubsystem
         {
@@ -36,6 +41,25 @@ namespace Unity.PolySpatial.XR.Internals
                 }
 
                 return m_PolySpatialXRPlaneSubsystem;
+            }
+        }
+
+        PolySpatialXRImageTrackingSubsystem PolySpatialXRImageTrackingSubsystem
+        {
+            get
+            {
+                if (m_PolySpatialXRImageSubsystem == null)
+                {
+                    m_ImageTrackingSubsystems.Clear();
+                    SubsystemManager.GetSubsystems(m_ImageTrackingSubsystems);
+
+                    if (m_ImageTrackingSubsystems.Count == 0)
+                        return null;
+
+                    m_PolySpatialXRImageSubsystem = m_ImageTrackingSubsystems[0];
+                }
+
+                return m_PolySpatialXRImageSubsystem;
             }
         }
 
@@ -83,6 +107,17 @@ namespace Unity.PolySpatial.XR.Internals
 
                     break;
                 }
+                case PolySpatialHostCommand.UpdateARTrackedImage:
+                {
+                    PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out PolySpatialHostID* hostID, out Span<byte> data);
+                    fixed (byte* p = data)
+                    {
+                        var images = PolySpatialARTrackedImageArray.Serializer.Parse(data.Length, p);
+                        foreach (var image in images.images)
+                            SetARTrackedImageData(image);
+                    }
+                    break;
+                }
                 case PolySpatialHostCommand.OnXRHandTrackingEvent:
                 {
                     PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out PolySpatialHostID* hostID, out PolySpatialHandID* handId,
@@ -111,6 +146,16 @@ namespace Unity.PolySpatial.XR.Internals
                     UpdateHandLayout(updatedHandLayout);
                     break;
                 }
+                case PolySpatialHostCommand.SendXRMeshData:
+                {
+                    PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out PolySpatialHostID* hostID, out Span<byte> data);
+                    fixed (byte* p = data)
+                    {
+                        var meshData = PolySpatialXRMeshesChanged.Serializer.Parse(data.Length, p);
+                        SendXRMeshData(meshData);
+                    }
+                    break;
+                }
             }
         }
 
@@ -127,11 +172,9 @@ namespace Unity.PolySpatial.XR.Internals
             if (PolySpatialXRPlaneSubsystem == null)
                 return;
 
-            var operation = arPlaneInfo.operation;
-
             var planeData = new DiscoveredPlane(arPlaneInfo);
 
-            switch (operation)
+            switch (arPlaneInfo.operation)
             {
                 case ARPlaneOperation.Removed:
                     PolySpatialXRPlaneSubsystem.TryRemovePlane(planeData);
@@ -142,10 +185,33 @@ namespace Unity.PolySpatial.XR.Internals
                 case ARPlaneOperation.Created:
                     PolySpatialXRPlaneSubsystem.TryAddPlane(planeData);
                     break;
-                default:
-                    Logging.LogError(LogCategory.XR, "Supported ARPlane operation.");
+            }
+        }
+
+        void SetARTrackedImageData(PolySpatialARTrackedImage trackedImage)
+        {
+            if (PolySpatialXRImageTrackingSubsystem == null)
+                return;
+
+            var imageData = new PolySpatialImage(trackedImage);
+
+            switch (trackedImage.operation)
+            {
+                case ARTrackedImageOperation.Removed:
+                    PolySpatialXRImageTrackingSubsystem.TryRemoveARTrackedImage(imageData);
+                    break;
+                case ARTrackedImageOperation.Updated:
+                    PolySpatialXRImageTrackingSubsystem.TryUpdateARTrackedImage(imageData);
+                    break;
+                case ARTrackedImageOperation.Created:
+                    PolySpatialXRImageTrackingSubsystem.TryAddARTrackedImage(imageData);
                     break;
             }
+        }
+
+        void SendXRMeshData(PolySpatialXRMeshesChanged meshData)
+        {
+            PolySpatialXRMeshSubsystemProcessor.instance.ProcessMeshUpdates(meshData);
         }
 
 #if INCLUDE_UNITY_XR_HANDS
@@ -156,7 +222,7 @@ namespace Unity.PolySpatial.XR.Internals
             // Here we assume that unless someone is managing XR manually, subsystems are only ever loaded at the beginning.
             // We are not expecting the set of subsystems to change at runtime.
             m_HandSubsystems = ListPool<PolySpatialHandSubsystem>.Get();
-            SubsystemManager.GetInstances(m_HandSubsystems);
+            SubsystemManager.GetSubsystems(m_HandSubsystems);
         }
 
         void DisposeHandSubsystems()
