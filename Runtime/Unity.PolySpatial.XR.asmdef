@@ -1,38 +1,39 @@
 {
-  "name": "Unity.PolySpatial.XR",
-  "rootNamespace": "",
-  "references": [
-    "Unity.InternalAPIEngineBridge.021",
-    "Unity.PolySpatial",
-    "Unity.PolySpatial.Core",
-    "Unity.XR.CoreUtils",
-    "Unity.XR.ARFoundation",
-    "Unity.XR.ARSubsystems",
-    "Unity.XR.Management",
-    "Unity.InputSystem",
-    "Unity.XR.Interaction.Toolkit",
-    "Unity.XR.Hands",
-    "FlatSharp.Runtime.Extensions",
-    "Unity.XR.VisionOS"
-  ],
-  "includePlatforms": [],
-  "excludePlatforms": [],
-  "allowUnsafeCode": true,
-  "overrideReferences": false,
-  "precompiledReferences": [],
-  "autoReferenced": true,
-  "defineConstraints": [],
-  "versionDefines": [
-    {
-      "name": "com.unity.xr.hands",
-      "expression": "1.1",
-      "define": "INCLUDE_UNITY_XR_HANDS"
-    },
-    {
-      "name": "com.unity.xr.interaction.toolkit",
-      "expression": "2.5.2",
-      "define": "HAS_XR_INTERACTION_TOOLKIT"
-    }
-  ],
-  "noEngineReferences": false
+    "name": "Unity.PolySpatial.XR",
+    "rootNamespace": "",
+    "references": [
+        "Unity.InternalAPIEngineBridge.021",
+        "Unity.PolySpatial",
+        "Unity.PolySpatial.Core",
+        "Unity.XR.CoreUtils",
+        "Unity.XR.ARFoundation",
+        "Unity.XR.ARSubsystems",
+        "Unity.XR.Management",
+        "Unity.InputSystem",
+        "Unity.XR.Interaction.Toolkit",
+        "Unity.XR.Hands",
+        "FlatSharp.Runtime.Extensions",
+        "Unity.XR.VisionOS",
+        "Unity.Collections"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.xr.hands",
+            "expression": "1.1",
+            "define": "INCLUDE_UNITY_XR_HANDS"
+        },
+        {
+            "name": "com.unity.xr.interaction.toolkit",
+            "expression": "2.5.2",
+            "define": "HAS_XR_INTERACTION_TOOLKIT"
+        }
+    ],
+    "noEngineReferences": false
 }

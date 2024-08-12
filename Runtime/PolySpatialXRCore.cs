@@ -76,7 +76,7 @@ namespace Unity.PolySpatial.XR.Internals
             PolySpatialNetworkAppHostBase.OnEnableCommandHandlers += AddLocalCommandHandler;
         }
 
-        void AddLocalCommandHandler(PolySpatialNetworkAppHostBase appHost)
+        void AddLocalCommandHandler(PolySpatialNetworkAppHostBase appHost, IPolySpatialLocalBackend backend)
         {
             m_XRLocalCommandHandler = new();
             m_XRLocalCommandHandler.NextHandler = appHost.NextHandler;

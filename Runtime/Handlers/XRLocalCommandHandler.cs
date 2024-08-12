@@ -43,6 +43,16 @@ namespace Unity.PolySpatial.XR.Internals
         {
             switch (cmd)
             {
+                case PolySpatialCommand.BeginAppFrame:
+                {
+                    PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out PolySpatialInstanceID* id, out PolySpatialFrameData* frameData);
+                    if (id->IsLocal())
+                        break;
+
+                    XRHandTracker.UpdateFrameNumber(id->hostId, frameData->frameNumber);
+
+                    break;
+                }
                 case PolySpatialCommand.BeginConnection:
                 {
                     PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out PolySpatialInstanceID* id, out Span<byte> _);
@@ -65,7 +75,7 @@ namespace Unity.PolySpatial.XR.Internals
                     XRHandTracker.EndConnection();
 
                     ARImageTracker.EndConnection();
-                    
+
                     XRMeshTracker.EndConnection();
 
                     break;

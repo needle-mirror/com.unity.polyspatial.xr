@@ -27,7 +27,8 @@ namespace Unity.PolySpatial.XR.Internals
         HandCacheData m_RightHand = new (PolySpatialHandID.Right);
 
         PolySpatialHostID m_PolySpatialHostID;
-
+        int m_CurrentAppFrameNumber;
+        int m_LastAppFrameNumber;
         bool m_Initialized;
 
         static readonly List<XRHandSubsystem> k_SubsystemsReuse = new ();
@@ -85,19 +86,24 @@ namespace Unity.PolySpatial.XR.Internals
 
         void CheckAndSendChanges(HandCacheData hand)
         {
+            if (!hand.m_IsTracked)
+                return;
+
             // Build a list of all the updated poses
             var updatedPoses = new List<PolySpatialJointData>();
-            foreach (var joint in hand.m_JointData)
+            foreach (var joint in hand.m_JointData.Values)
             {
-                var polySpatialData = new PolySpatialJointData() { jointId = (int)joint.Key };
-
-                polySpatialData.pose = joint.Value.pose;
-                polySpatialData.radius = joint.Value.radius;
-                polySpatialData.angularVelocity = joint.Value.angularVelocity;
-                polySpatialData.linearVelocity = joint.Value.linearVelocity;
-                polySpatialData.visionOSRotation = joint.Value.visionOSRotation;
-                polySpatialData.visionOSTrackingState = joint.Value.visionOSTrackingState;
-                polySpatialData.trackingState = joint.Value.trackingState;
+                var polySpatialData = new PolySpatialJointData
+                {
+                    jointId = joint.jointId,
+                    pose = joint.pose,
+                    radius = joint.radius,
+                    angularVelocity = joint.angularVelocity,
+                    linearVelocity = joint.linearVelocity,
+                    visionOSRotation = joint.visionOSRotation,
+                    visionOSTrackingState = joint.visionOSTrackingState,
+                    trackingState = joint.trackingState
+                };
 
                 updatedPoses.Add(polySpatialData);
             }
@@ -134,6 +140,15 @@ namespace Unity.PolySpatial.XR.Internals
             }
             else
             {
+                if (!m_PolySpatialHostID.IsLocal())
+                {
+                    // Prevent hand updates from being sent over the network faster than the app simulation is running
+                    // This is because XRHandData is too big to send at 90hz over network. This could change once todo LXR-4000 is completed
+                    if (m_LastAppFrameNumber < m_CurrentAppFrameNumber)
+                        m_LastAppFrameNumber = m_CurrentAppFrameNumber;
+                    else
+                        return;
+                }
                 CheckAndSendChanges(m_LeftHand);
                 CheckAndSendChanges(m_RightHand);
             }
@@ -249,9 +264,19 @@ namespace Unity.PolySpatial.XR.Internals
             Dispose();
         }
 
-        public void InitHandTracking(PolySpatialHostID hostID)
+        internal void UpdateFrameNumber(PolySpatialHostID hostID, int frameNumber)
+        {
+            if (hostID != m_PolySpatialHostID)
+                return;
+
+            m_CurrentAppFrameNumber = frameNumber;
+        }
+
+        internal void InitHandTracking(PolySpatialHostID hostID)
         {
             m_PolySpatialHostID = hostID;
+            m_CurrentAppFrameNumber = 0;
+            m_LastAppFrameNumber = 0;
 
             if (m_LeftHand.m_IsTracked)
                 HostCommandHelper.OnXRHandTrackingEvent(PolySpatialHandID.Left, PolySpatialXRHandTrackingEvent.Acquired, m_PolySpatialHostID);

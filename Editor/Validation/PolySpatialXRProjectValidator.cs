@@ -1,10 +1,11 @@
-using System;
+#if UNITY_HAS_XR_VISIONOS
 using Unity.PolySpatial;
 using Unity.XR.CoreUtils.Editor;
 using UnityEditor.XR.Management;
 using UnityEditor.XR.Management.Metadata;
 using UnityEngine;
 using UnityEngine.XR.Management;
+using UnityEditor.XR.VisionOS;
 
 namespace UnityEditor.PolySpatial.XR.Validation
 {
@@ -29,7 +30,8 @@ namespace UnityEditor.PolySpatial.XR.Validation
                     Error = false,
                     CheckPredicate = () => PolySpatialUserSettings.instance.ConnectToPlayToDevice && IsLoaderEnabled(k_PolySpatialXRLoader),
                     FixIt = () => EnableLoader(k_PolySpatialXRLoader),
-                    IsRuleEnabled = () => PolySpatialUserSettings.instance.ConnectToPlayToDevice
+                    // PolySpatial XR should work in cases beyond just RealityKit, we include the RealityKit check in here because Play to Device only works with this mode
+                    IsRuleEnabled = () => CheckAppMode(VisionOSSettings.AppMode.RealityKit) && PolySpatialUserSettings.instance.ConnectToPlayToDevice
                 },
                 new()
                 {
@@ -38,7 +40,8 @@ namespace UnityEditor.PolySpatial.XR.Validation
                     Error = false,
                     CheckPredicate = () => PolySpatialUserSettings.instance.ConnectToPlayToDevice && !IsLoaderEnabled(k_XRSimulationLoader),
                     FixIt = () => DisableLoader(k_XRSimulationLoader),
-                    IsRuleEnabled = () => PolySpatialUserSettings.instance.ConnectToPlayToDevice
+                    // PolySpatial XR should work in cases beyond just RealityKit, we include the RealityKit check in here because Play to Device only works with this mode
+                    IsRuleEnabled = () => CheckAppMode(VisionOSSettings.AppMode.RealityKit) && PolySpatialUserSettings.instance.ConnectToPlayToDevice
                 },
             };
 
@@ -101,5 +104,17 @@ namespace UnityEditor.PolySpatial.XR.Validation
                 Debug.LogError("Unable to remove loader: " + loaderName);
             }
         }
+
+        static bool CheckAppMode(VisionOSSettings.AppMode mode)
+        {
+            return GetEditorSettings(out var editorSettings) && editorSettings.appMode == mode;
+        }
+
+        static bool GetEditorSettings(out VisionOSSettings editorSettings)
+        {
+            editorSettings = VisionOSSettings.currentSettings;
+            return editorSettings != null;
+        }
     }
 }
+#endif
