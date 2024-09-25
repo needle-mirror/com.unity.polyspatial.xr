@@ -7,6 +7,23 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [2.0.4] - 2024-09-25
+
+### Added
+
+### Changed
+- Exclude Android from runtime asmdef's.
+- Update minimum Editor version to 6000.0.22f1.
+
+### Deprecated
+
+### Removed
+
+### Fixed
+- Fixed ignorable null ref exception using Play To Device from a scene without a XRMeshManager present.
+
+### Security
+
 ## [2.0.0-pre.11] - 2024-08-12
 
 ### Added
@@ -18,7 +35,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 
 ### Fixed
-- Fixed Play To Device project validation warning when the visionOS AppMode is not RealityKit. 
+- Fixed Play To Device project validation warning when the visionOS AppMode is not RealityKit.
 
 ### Security
 

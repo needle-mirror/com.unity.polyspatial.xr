@@ -1,36 +1,33 @@
 {
   "name": "com.unity.polyspatial.xr",
   "displayName": "PolySpatial XR",
-  "version": "2.0.0-pre.11",
+  "version": "2.0.4",
   "unity": "6000.0",
-  "unityRelease": "0b16",
+  "unityRelease": "22f1",
   "description": "This is the PolySpatial XR official package designed to take advantage of spatial computing, it allows you to create experiences where virtual and physical worlds merge seamlessly. From immersive gaming and interactive storytelling to revolutionizing design and industry, the PolySpatial XR package empowers you to visualize, manipulate, and engage with digital content in your physical surroundings.\nUnity PolySpatial and visionOS support is only available to Unity Pro, Unity Enterprise, and Unity Industry users. Learn more about these plans at unity.com/pricing.",
   "keywords": [
     "xreditorsubsystem"
   ],
   "category": "XR",
   "dependencies": {
-    "com.unity.nuget.newtonsoft-json": "3.0.2",
+    "com.unity.nuget.newtonsoft-json": "3.2.1",
     "com.unity.textmeshpro": "3.0.7",
     "com.unity.xr.core-utils": "2.3.0",
-    "com.unity.inputsystem": "1.4.4",
-    "com.unity.polyspatial": "2.0.0-pre.11",
-    "com.unity.xr.arfoundation": "6.0.1",
-    "com.unity.xr.hands": "1.1.0"
-  },
-  "upm": {
-    "changelog": ""
+    "com.unity.inputsystem": "1.10.0",
+    "com.unity.polyspatial": "2.0.4",
+    "com.unity.xr.arfoundation": "6.0.3",
+    "com.unity.xr.hands": "1.4.1"
   },
   "_upm": {
-    "changelog": "### Added\n\n### Changed\n\n### Deprecated\n\n### Removed\n\n### Fixed\n- Fixed Play To Device project validation warning when the visionOS AppMode is not RealityKit. \n\n### Security"
+    "changelog": "### Added\n\n### Changed\n- Exclude Android from runtime asmdef's.\n- Update minimum Editor version to 6000.0.22f1.\n\n### Deprecated\n\n### Removed\n\n### Fixed\n- Fixed ignorable null ref exception using Play To Device from a scene without a XRMeshManager present.\n\n### Security"
   },
   "upmCi": {
-    "footprint": "a2971c02f0eb26c9b347c82fb07da46699d02ca4"
+    "footprint": "e4fb946794ba9038dfae5b23033ea824f9eec986"
   },
   "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.polyspatial.xr@2.0/manual/index.html",
   "repository": {
     "url": "https://github.cds.internal.unity3d.com/unity/quantum.git",
     "type": "git",
-    "revision": "9255a4b6650a862594a9b963faf0a11de18c619b"
+    "revision": "f1ff4502685c7c85fb07a1997f1cd553ba4dcbe6"
   }
 }

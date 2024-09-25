@@ -28,20 +28,20 @@ namespace UnityEditor.PolySpatial.XR.Validation
                     Message = "Enable the `PolySpatial XR` Plug-in Provider, while using Play To Device, to have XR data sent from device to the editor.",
                     Category = string.Format(k_CategoryFormat, "Play To Device"),
                     Error = false,
-                    CheckPredicate = () => PolySpatialUserSettings.instance.ConnectToPlayToDevice && IsLoaderEnabled(k_PolySpatialXRLoader),
+                    CheckPredicate = () => PolySpatialUserSettings.Instance.ConnectToPlayToDevice && IsLoaderEnabled(k_PolySpatialXRLoader),
                     FixIt = () => EnableLoader(k_PolySpatialXRLoader),
                     // PolySpatial XR should work in cases beyond just RealityKit, we include the RealityKit check in here because Play to Device only works with this mode
-                    IsRuleEnabled = () => CheckAppMode(VisionOSSettings.AppMode.RealityKit) && PolySpatialUserSettings.instance.ConnectToPlayToDevice
+                    IsRuleEnabled = () => CheckAppMode(VisionOSSettings.AppMode.RealityKit) && PolySpatialUserSettings.Instance.ConnectToPlayToDevice
                 },
                 new()
                 {
                     Message = "Disable `XR Simulation` Plug-in Provider, while using Play To Device, the `PolySpatial XR` Provider will send XR data from the connected device.",
                     Category = string.Format(k_CategoryFormat, "Play To Device"),
                     Error = false,
-                    CheckPredicate = () => PolySpatialUserSettings.instance.ConnectToPlayToDevice && !IsLoaderEnabled(k_XRSimulationLoader),
+                    CheckPredicate = () => PolySpatialUserSettings.Instance.ConnectToPlayToDevice && !IsLoaderEnabled(k_XRSimulationLoader),
                     FixIt = () => DisableLoader(k_XRSimulationLoader),
                     // PolySpatial XR should work in cases beyond just RealityKit, we include the RealityKit check in here because Play to Device only works with this mode
-                    IsRuleEnabled = () => CheckAppMode(VisionOSSettings.AppMode.RealityKit) && PolySpatialUserSettings.instance.ConnectToPlayToDevice
+                    IsRuleEnabled = () => CheckAppMode(VisionOSSettings.AppMode.RealityKit) && PolySpatialUserSettings.Instance.ConnectToPlayToDevice
                 },
             };
 

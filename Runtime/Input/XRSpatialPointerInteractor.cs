@@ -6,17 +6,18 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.Serialization;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 
 namespace Unity.PolySpatial.XR.Input
 {
     /// <summary>
-    /// Can subscribe to a WorldTouch event from the InputSystem and directly
+    /// Can subscribe to a SpatialPointer event from the InputSystem and directly
     /// forward it to XRI interactable components via the ColliderId in the
-    /// WorldTouchState struct. This evades re-raycasting inside the app
+    /// SpatialPointerState struct. This avoids re-raycasting inside the app
     /// to determine what collider was interacted with.
     /// </summary>
-    public class XRTouchSpaceInteractor : UnityEngine.XR.Interaction.Toolkit.Interactors.XRBaseInteractor
+    public class XRSpatialPointerInteractor : UnityEngine.XR.Interaction.Toolkit.Interactors.XRBaseInteractor
     {
         [FormerlySerializedAs("m_WorldTouch")]
         [SerializeField]
@@ -96,9 +97,8 @@ namespace Unity.PolySpatial.XR.Input
             }
         }
 
-        static bool TryGetInteractable(long colliderId, out UnityEngine.XR.Interaction.Toolkit.Interactables.XRBaseInteractable interactable)
+        bool TryGetInteractable(long colliderId, out IXRInteractable interactable)
         {
-            // Must get GO but seems can get collider directly at some point once PolySpatialInstanceIds of components are stored
             var go = ObjectBridge.FindObjectFromInstanceID(colliderId) as GameObject;
             if (go == null)
             {
@@ -106,8 +106,7 @@ namespace Unity.PolySpatial.XR.Input
                 return false;
             }
 
-            interactable = go.GetComponent<UnityEngine.XR.Interaction.Toolkit.Interactables.XRBaseInteractable>();
-            return interactable != null;
+            return interactionManager.TryGetInteractableForCollider(go.GetComponent<Collider>(), out interactable);
         }
     }
 }

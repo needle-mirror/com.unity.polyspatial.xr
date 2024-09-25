@@ -3,8 +3,8 @@ using Unity.PolySpatial.XR.Input;
 
 namespace UnityEditor.PolySpatial.XR.Input
 {
-    [CustomEditor(typeof(XRTouchSpaceInteractor))]
-    public class XRTouchSpaceInteractorEditor : Editor
+    [CustomEditor(typeof(XRSpatialPointerInteractor))]
+    class XRSpatialPointerInteractorEditor : Editor
     {
         SerializedProperty m_SpatialPointerProperty;
 

@@ -211,7 +211,8 @@ namespace Unity.PolySpatial.XR.Internals
 
         void SendXRMeshData(PolySpatialXRMeshesChanged meshData)
         {
-            PolySpatialXRMeshSubsystemProcessor.instance.ProcessMeshUpdates(meshData);
+            if (PolySpatialXRMeshSubsystemProcessor.instance != null)
+                PolySpatialXRMeshSubsystemProcessor.instance.ProcessMeshUpdates(meshData);
         }
 
 #if INCLUDE_UNITY_XR_HANDS
