@@ -1,7 +1,7 @@
 {
   "name": "com.unity.polyspatial.xr",
   "displayName": "PolySpatial XR",
-  "version": "1.3.9",
+  "version": "1.3.11",
   "unity": "2022.3",
   "unityRelease": "19f1",
   "description": "This is the PolySpatial XR official package designed to take advantage of spatial computing, it allows you to create experiences where virtual and physical worlds merge seamlessly. From immersive gaming and interactive storytelling to revolutionizing design and industry, the PolySpatial XR package empowers you to visualize, manipulate, and engage with digital content in your physical surroundings.\nUnity PolySpatial and visionOS support is only available to Unity Pro, Unity Enterprise, and Unity Industry users. Learn more about these plans at unity.com/pricing.",
@@ -14,7 +14,7 @@
     "com.unity.textmeshpro": "3.0.7",
     "com.unity.xr.core-utils": "2.3.0",
     "com.unity.inputsystem": "1.4.4",
-    "com.unity.polyspatial": "1.3.9",
+    "com.unity.polyspatial": "1.3.11",
     "com.unity.xr.arfoundation": "5.1.1",
     "com.unity.xr.hands": "1.3.0"
   },
@@ -22,15 +22,15 @@
     "changelog": ""
   },
   "_upm": {
-    "changelog": ""
+    "changelog": "### Added\n- We now track head pose over Play To Device.\n\n### Changed\n\n### Deprecated\n\n### Removed\n\n### Fixed\n- Fixed ignorable null ref exception using Play To Device from a scene without a XRMeshManager present.\n\n### Security"
   },
   "upmCi": {
-    "footprint": "227ea4da0eacc65abcff3db3b1ca147b19d97095"
+    "footprint": "0693b4ed01b0b241f32638933585090fc3821fcc"
   },
   "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.polyspatial.xr@1.3/manual/index.html",
   "repository": {
-    "url": "https://github.cds.internal.unity3d.com/unity/quantum.git",
+    "url": "https://github.cds.internal.unity3d.com/unity/polyspatial.git",
     "type": "git",
-    "revision": "579174d8372e8ecc686cf4b8bc30cebdeaa335e0"
+    "revision": "07988e5668353921f73a3fe061c0abd1811a4806"
   }
 }

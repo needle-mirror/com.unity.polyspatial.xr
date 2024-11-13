@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.PolySpatial.InputDevices;
 using Unity.PolySpatial.Internals;
 using Unity.PolySpatial.XR.Internals.Subsystems;
 using UnityEngine;
@@ -116,6 +117,7 @@ namespace Unity.PolySpatial.XR.Internals
                         foreach (var image in images.images)
                             SetARTrackedImageData(image);
                     }
+
                     break;
                 }
                 case PolySpatialHostCommand.OnXRHandTrackingEvent:
@@ -134,6 +136,7 @@ namespace Unity.PolySpatial.XR.Internals
                         var handData = PolySpatialXRHandData.Serializer.Parse(data.Length, p, FlatSharp.FlatBufferDeserializationOption.GreedyMutable);
                         SetXRHandData(handData, *hostID);
                     }
+
                     break;
                 }
                 case PolySpatialHostCommand.UpdateHandLayout:
@@ -154,8 +157,36 @@ namespace Unity.PolySpatial.XR.Internals
                         var meshData = PolySpatialXRMeshesChanged.Serializer.Parse(data.Length, p);
                         SendXRMeshData(meshData);
                     }
+
                     break;
                 }
+
+                // InputCommandCategory
+                case PolySpatialHostCommand.InputEvent:
+                {
+                    PolySpatialArgs.ExtractInputEventArgs(argCount, argValues, argSizes, out var type, out var eventCount, out var events);
+                    OnInputEvent(*type, eventCount, events);
+                    break;
+                }
+            }
+        }
+
+        static unsafe void OnInputEvent(PolySpatialInputType type, int eventCount, void* eventsPtr)
+        {
+            switch (type)
+            {
+                case PolySpatialInputType.HeadPose:
+                    var poseEvents = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<PolySpatialHeadPoseEvent>(
+                        eventsPtr,
+                        eventCount,
+                        Allocator.None);
+
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                    NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref poseEvents, AtomicSafetyHandle.GetTempUnsafePtrSliceHandle());
+#endif
+
+                    PolySpatialXRHMDEventListener.OnHeadPoseEvent(poseEvents);
+                    break;
             }
         }
 
@@ -211,7 +242,8 @@ namespace Unity.PolySpatial.XR.Internals
 
         void SendXRMeshData(PolySpatialXRMeshesChanged meshData)
         {
-            PolySpatialXRMeshSubsystemProcessor.instance.ProcessMeshUpdates(meshData);
+            if (PolySpatialXRMeshSubsystemProcessor.instance != null)
+                PolySpatialXRMeshSubsystemProcessor.instance.ProcessMeshUpdates(meshData);
         }
 
 #if INCLUDE_UNITY_XR_HANDS

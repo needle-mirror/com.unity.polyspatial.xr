@@ -35,6 +35,11 @@
             "define": "INCLUDE_UNITY_XR_HANDS"
         },
         {
+            "name": "com.unity.modules.xr",
+            "expression": "1.0.0",
+            "define": "UNITY_INPUT_SYSTEM_ENABLE_XR"
+        },
+        {
             "name": "com.unity.xr.visionos",
             "expression": "0.7.1",
             "define": "INCLUDE_UNITY_XR_VISIONOS"

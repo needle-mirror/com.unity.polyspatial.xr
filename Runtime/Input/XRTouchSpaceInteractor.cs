@@ -96,7 +96,7 @@ namespace Unity.PolySpatial.XR.Input
             }
         }
 
-        static bool TryGetInteractable(long colliderId, out XRBaseInteractable interactable)
+        bool TryGetInteractable(long colliderId, out IXRInteractable interactable)
         {
             // Must get GO but seems can get collider directly at some point once PolySpatialInstanceIds of components are stored
             var go = ObjectBridge.FindObjectFromInstanceID(colliderId) as GameObject;
@@ -106,8 +106,7 @@ namespace Unity.PolySpatial.XR.Input
                 return false;
             }
 
-            interactable = go.GetComponent<XRBaseInteractable>();
-            return interactable != null;
+            return interactionManager.TryGetInteractableForCollider(go.GetComponent<Collider>(), out interactable);
         }
     }
 }

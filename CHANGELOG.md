@@ -7,6 +7,22 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.3.11] - 2024-11-13
+
+### Added
+- We now track head pose over Play To Device.
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+- Fixed ignorable null ref exception using Play To Device from a scene without a XRMeshManager present.
+
+### Security
+
 ## [1.3.9] - 2024-08-26
 
 ## [1.3.1] - 2024-07-09

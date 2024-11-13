@@ -21,6 +21,7 @@ namespace Unity.PolySpatial.XR.Internals
         {
             internal PolySpatialARPlaneTracker m_ARPlaneTracker;
             internal PolySpatialXRHandTracker m_XRHandTracker;
+            internal PolySpatialXRHeadTracker m_XRHeadTracker;
             internal PolySpatialXRMeshTracker m_XRMeshTracker;
             internal PolySpatialARImageTracker m_XRImageTracker;
 

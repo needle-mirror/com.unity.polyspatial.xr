@@ -18,6 +18,8 @@ namespace Unity.PolySpatial.XR.Internals
 
         PolySpatialXRHandTracker XRHandTracker => Core.m_ARSessionData.m_XRHandTracker;
 
+        PolySpatialXRHeadTracker XRHeadTracker => Core.m_ARSessionData.m_XRHeadTracker;
+
         PolySpatialXRMeshTracker XRMeshTracker => Core.m_ARSessionData.m_XRMeshTracker;
 
         PolySpatialARImageTracker ARImageTracker => Core.m_ARSessionData.m_XRImageTracker;
@@ -56,6 +58,8 @@ namespace Unity.PolySpatial.XR.Internals
 
                     XRMeshTracker.InitializeXRMeshes(id->hostId);
 
+                    PolySpatialXRHeadTracker.StartConnection(id->hostId);
+
                     break;
                 }
                 case PolySpatialCommand.EndConnection:
@@ -67,6 +71,8 @@ namespace Unity.PolySpatial.XR.Internals
                     ARImageTracker.EndConnection();
                     
                     XRMeshTracker.EndConnection();
+
+                    PolySpatialXRHeadTracker.EndConnection();
 
                     break;
                 }
