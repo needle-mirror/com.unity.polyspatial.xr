@@ -23,8 +23,9 @@ namespace Unity.PolySpatial.XR.Internals
 
             m_MeshManager.meshesChanged += MeshManagerOnMeshesChanged;
 
-            PolySpatialARPlaneArray planeEngineData = new ();
-            planeEngineData.planes = new List<PolySpatialARPlane>();
+            // Send over a snapshot of the current set of meshes before connection.
+            // Only call after meshesChanged is set.
+            m_MeshManager.SendCurrentMeshes();
 
             m_PolySpatialHostID = polySpatialHostID;
         }

@@ -103,6 +103,74 @@ namespace Unity.PolySpatial.XR.Internals
         /// </summary>
         internal event Action<PolySpatialXRMeshesChanged> meshesChanged;
 
+        // Similar to SendUpdatesToTrackers() but here we are working on m_Meshes.Values instead of m_Added,
+        // and there are no meshes to remove.
+        internal void SendCurrentMeshes()
+        {
+            if (m_Meshes.Count == 0)
+                return;
+
+            var changeTracker = new PolySpatialXRMeshesChanged
+            {
+                addOrUpdatedArray = AddOrUpdateMeshes(m_Meshes.Values, (meshFilter) =>
+                {
+                    var prefix = "Mesh ";
+                    return meshFilter.gameObject.name.Substring(prefix.Length);
+                })
+            };
+
+            changeTracker.removedArray = new List<TrackableID>();
+
+            meshesChanged?.Invoke(changeTracker);
+        }
+
+        private List<PolySpatialXRMesh> AddOrUpdateMeshes(IEnumerable<MeshFilter> meshFilters, Func<MeshFilter, string> getMeshIdString)
+        {
+            var list = new List<PolySpatialXRMesh>();
+
+            foreach (var meshFilter in meshFilters)
+            {
+                var meshIdString = getMeshIdString(meshFilter);
+                var (subId1, subId2) = ExtractSubIds(meshIdString);
+                var trans = meshFilter.transform;
+                var mesh = (meshFilter.sharedMesh != null) ? meshFilter.sharedMesh : meshFilter.mesh;
+                var shortIndices = mesh.vertexCount < 65536;
+
+                var indexes16List = new List<ushort>();
+                var indexes32List = new List<int>();
+                if (shortIndices)
+                {
+                    mesh.GetIndices(indexes16List, 0);
+                }
+                else
+                {
+                    mesh.GetIndices(indexes32List, 0);
+                }
+
+                list.Add(new PolySpatialXRMesh
+                {
+                    changeState = PolySpatialMeshChangeState.Added,
+                    meshID = new TrackableID
+                    {
+                        subId1 = subId1,
+                        subId2 = subId2
+                    },
+                    position = trans.localPosition,
+                    rotation = trans.localRotation,
+                    scale = trans.localScale,
+                    numVertices = mesh.vertexCount,
+                    vertices = new NativeArray<Vector3>(mesh.vertices.ToArray(), Allocator.Persistent),
+                    normals = new NativeArray<Vector3>(mesh.normals.ToArray(), Allocator.Persistent),
+                    numTriangles = mesh.triangles.Length / 3,
+                    shortIndices = shortIndices,
+                    indices16 = shortIndices ? new NativeArray<ushort>(indexes16List.ToArray(), Allocator.Persistent) : null,
+                    indices32 = !shortIndices ? new NativeArray<int>(indexes32List.ToArray(), Allocator.Persistent) : null,
+                });
+            }
+
+            return list;
+        }
+
         /// <summary>
         /// Destroys all generated meshes and ignores any pending meshes.
         /// </summary>
@@ -214,54 +282,24 @@ namespace Unity.PolySpatial.XR.Internals
 
         void SendUpdatesToTrackers()
         {
-            var changeTracker = new PolySpatialXRMeshesChanged();
-            changeTracker.addOrUpdatedArray = new List<PolySpatialXRMesh>();
-            foreach (var meshFilter in m_Added)
-            {
-                var meshId = m_MeshIDLookUp[meshFilter];
-                var meshIdString = meshId.ToString();
-                var (subId1, subId2) = ExtractSubIds(meshIdString);
-                var trans = meshFilter.transform;
-                var mesh = (meshFilter.sharedMesh != null) ? meshFilter.sharedMesh : meshFilter.mesh;
-                var shortIndices = mesh.vertexCount < 65536;
-                var indexes16List = new List<ushort>();
-                var indexes32List = new List<int>();
-                if (shortIndices)
-                {
-                    mesh.GetIndices(indexes16List, 0);
-                }
-                else
-                {
-                    mesh.GetIndices(indexes32List, 0);
-                }
+            if (m_Added.Count + m_RemovedMeshIds.Count == 0)
+                return;
 
-                changeTracker.addOrUpdatedArray.Add( new PolySpatialXRMesh()
+            var changeTracker = new PolySpatialXRMeshesChanged
+            {
+                addOrUpdatedArray = AddOrUpdateMeshes(m_Added, (meshFilter) =>
                 {
-                    changeState = PolySpatialMeshChangeState.Added,
-                    meshID = new TrackableID()
-                    {
-                        subId1 = subId1,
-                        subId2 = subId2
-                    },
-                    position = trans.localPosition,
-                    rotation = trans.localRotation,
-                    scale = trans.localScale,
-                    numVertices =  mesh.vertexCount,
-                    vertices = new NativeArray<Vector3>(mesh.vertices.ToArray(), Allocator.Persistent),
-                    normals = new NativeArray<Vector3>(mesh.normals.ToArray(), Allocator.Persistent),
-                    numTriangles = mesh.triangles.Length / 3,
-                    shortIndices = shortIndices,
-                    indices16 = shortIndices ? new NativeArray<ushort>(indexes16List.ToArray(), Allocator.Persistent) : null,
-                    indices32 = !shortIndices ? new NativeArray<int>(indexes32List.ToArray(), Allocator.Persistent) : null,
-                });
-            }
+                    var meshId = m_MeshIDLookUp[meshFilter];
+                    return meshId.ToString();
+                })
+            };
 
             changeTracker.removedArray = new List<TrackableID>();
             foreach (var meshId in m_RemovedMeshIds)
             {
                 var meshIdString = meshId.ToString();
                 var (subId1, subId2) = ExtractSubIds(meshIdString);
-                changeTracker.removedArray.Add( new TrackableID()
+                changeTracker.removedArray.Add(new TrackableID
                 {
                     subId1 = subId1,
                     subId2 = subId2
@@ -378,6 +416,8 @@ namespace Unity.PolySpatial.XR.Internals
 
             SetMeshTransform(meshFilter.transform, meshTransform);
 
+            // Unlike ARMeshManager, which this class is modeled after, we don't want to enable the meshes under P2D.
+            // Editor side of P2D connection will create them and send them back to us on device.
             //meshFilter.gameObject.SetActive(true);
 
             m_MeshIDLookUp[meshFilter] = result.MeshId;

@@ -65,7 +65,11 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
         {
         }
 
+#if UNITY_EDITOR
+        [UnityEditor.InitializeOnLoadMethod]
+#else
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+#endif
         static void RegisterDescriptor()
         {
             XRSessionSubsystemDescriptor.Register(new XRSessionSubsystemDescriptor.Cinfo

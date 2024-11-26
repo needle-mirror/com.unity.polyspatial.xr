@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.PolySpatial.InputDevices;
 using Unity.PolySpatial.XR.Internals.Subsystems;
 using UnityEngine;
 using UnityEngine.XR;
@@ -27,6 +28,8 @@ namespace Unity.PolySpatial.XR.Internals
 #endif
 
         static List<XRMeshSubsystemDescriptor> s_MeshSubsystemDescriptors = new();
+
+        PolySpatialXRHMDEventListener m_HMDEventListener;
 
         /// <summary>
         /// Initializes the loader.
@@ -58,6 +61,8 @@ namespace Unity.PolySpatial.XR.Internals
             }
 #endif
 
+            m_HMDEventListener = new PolySpatialXRHMDEventListener();
+
             Logging.Log(LogCategory.XR, "Initialize PolySpatialXRLoader");
 
             return sessionSubsystem != null;
@@ -78,6 +83,8 @@ namespace Unity.PolySpatial.XR.Internals
             DestroySubsystem<XRMeshSubsystem>();
             DestroySubsystem<XRPlaneSubsystem>();
             DestroySubsystem<XRSessionSubsystem>();
+            m_HMDEventListener.Deinitialize();
+            m_HMDEventListener = null;
 
             return true;
         }

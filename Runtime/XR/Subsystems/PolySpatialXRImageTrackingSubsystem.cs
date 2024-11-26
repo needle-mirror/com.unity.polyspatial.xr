@@ -184,6 +184,15 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
 
             public void TryUpdateARTrackedImage(PolySpatialImage image)
             {
+                if (!m_AllImages.ContainsKey(image.trackableId))
+                {
+                    // For the 2nd connection we are not seeing a created come in, ARFoundations will get confused and
+                    // eat all updates until a create comes in.  This converts the first update to a create if we haven't
+                    // started tracking this image yet.
+                    TryAddARTrackedImage(image);
+                    return;
+                }
+
                 // Make sure there isn't already a removed event
                 if (!m_RemovedImages.Contains(image.trackableId))
                 {
@@ -263,7 +272,11 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
             PolySpatialProvider?.TryRemoveARTrackedImage(plane);
         }
 
+#if UNITY_EDITOR
+        [UnityEditor.InitializeOnLoadMethod]
+#else
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+#endif
         static void RegisterDescriptor()
         {
             var cinfo = new XRImageTrackingSubsystemDescriptor.Cinfo

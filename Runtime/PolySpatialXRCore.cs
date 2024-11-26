@@ -21,6 +21,7 @@ namespace Unity.PolySpatial.XR.Internals
         {
             internal PolySpatialARPlaneTracker m_ARPlaneTracker;
             internal PolySpatialXRHandTracker m_XRHandTracker;
+            internal PolySpatialXRHeadTracker m_XRHeadTracker;
             internal PolySpatialXRMeshTracker m_XRMeshTracker;
             internal PolySpatialARImageTracker m_XRImageTracker;
 
@@ -62,13 +63,6 @@ namespace Unity.PolySpatial.XR.Internals
         /// </summary>
         internal override void Initialize()
         {
-            m_ARSessionData = new ARData();
-
-            m_ARSessionData.m_ARPlaneTracker = new PolySpatialARPlaneTracker();
-            m_ARSessionData.m_XRHandTracker = new PolySpatialXRHandTracker();
-            m_ARSessionData.m_XRMeshTracker = new PolySpatialXRMeshTracker();
-            m_ARSessionData.m_XRImageTracker = new PolySpatialARImageTracker();
-
             if (PolySpatialCore.CurrentNetworkingMode == PolySpatialSettings.NetworkingMode.LocalAndClient)
                 AddHostCommandHandlers();
 
@@ -76,8 +70,16 @@ namespace Unity.PolySpatial.XR.Internals
             PolySpatialNetworkAppHostBase.OnEnableCommandHandlers += AddLocalCommandHandler;
         }
 
+        // This will only run in the P2D app and not in the editor.
         void AddLocalCommandHandler(PolySpatialNetworkAppHostBase appHost, IPolySpatialLocalBackend backend)
         {
+            m_ARSessionData = new ARData();
+
+            m_ARSessionData.m_ARPlaneTracker = new PolySpatialARPlaneTracker();
+            m_ARSessionData.m_XRHandTracker = new PolySpatialXRHandTracker();
+            m_ARSessionData.m_XRMeshTracker = new PolySpatialXRMeshTracker();
+            m_ARSessionData.m_XRImageTracker = new PolySpatialARImageTracker();
+
             m_XRLocalCommandHandler = new();
             m_XRLocalCommandHandler.NextHandler = appHost.NextHandler;
             appHost.NextHandler = m_XRLocalCommandHandler;
@@ -100,6 +102,8 @@ namespace Unity.PolySpatial.XR.Internals
         {
             foreach (var handler in m_HostCommandHandlers)
                 (handler as IDisposable)?.Dispose();
+
+            m_HostCommandHandlers.Clear();
 
             if (m_ARSessionData != null)
             {

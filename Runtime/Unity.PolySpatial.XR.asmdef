@@ -17,9 +17,7 @@
         "Unity.Collections"
     ],
     "includePlatforms": [],
-    "excludePlatforms": [
-        "Android"
-    ],
+    "excludePlatforms": [],
     "allowUnsafeCode": true,
     "overrideReferences": false,
     "precompiledReferences": [],
@@ -35,6 +33,16 @@
             "name": "com.unity.xr.interaction.toolkit",
             "expression": "2.5.2",
             "define": "HAS_XR_INTERACTION_TOOLKIT"
+        },
+        {
+            "name": "com.unity.modules.xr",
+            "expression": "1.0.0",
+            "define": "UNITY_INPUT_SYSTEM_ENABLE_XR"
+        },
+        {
+            "name": "com.unity.xr.visionos",
+            "expression": "1.0.0",
+            "define": "INCLUDE_UNITY_XR_VISIONOS"
         }
     ],
     "noEngineReferences": false

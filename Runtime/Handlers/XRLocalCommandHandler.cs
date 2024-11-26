@@ -18,6 +18,8 @@ namespace Unity.PolySpatial.XR.Internals
 
         PolySpatialXRHandTracker XRHandTracker => Core.m_ARSessionData.m_XRHandTracker;
 
+        PolySpatialXRHeadTracker XRHeadTracker => Core.m_ARSessionData.m_XRHeadTracker;
+
         PolySpatialXRMeshTracker XRMeshTracker => Core.m_ARSessionData.m_XRMeshTracker;
 
         PolySpatialARImageTracker ARImageTracker => Core.m_ARSessionData.m_XRImageTracker;
@@ -49,12 +51,15 @@ namespace Unity.PolySpatial.XR.Internals
                     if (id->IsLocal())
                         break;
 
-                    XRHandTracker.UpdateFrameNumber(id->hostId, frameData->frameNumber);
+                    XRHandTracker?.UpdateFrameNumber(id->hostId, frameData->frameNumber);
 
                     break;
                 }
                 case PolySpatialCommand.BeginConnection:
                 {
+                    if (Core.m_ARSessionData == null)
+                        break;
+
                     PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out PolySpatialInstanceID* id, out Span<byte> _);
                     // Send the current state of the ARPlane tracking. ARPlane tracking state might be active when a Client connects.
                     ARPlaneTracker.InitializeARPlanes(id->hostId);
@@ -66,10 +71,15 @@ namespace Unity.PolySpatial.XR.Internals
 
                     XRMeshTracker.InitializeXRMeshes(id->hostId);
 
+                    PolySpatialXRHeadTracker.StartConnection(id->hostId);
+
                     break;
                 }
                 case PolySpatialCommand.EndConnection:
                 {
+                    if (Core.m_ARSessionData == null)
+                        break;
+
                     ARPlaneTracker.EndConnection();
 
                     XRHandTracker.EndConnection();
@@ -77,6 +87,8 @@ namespace Unity.PolySpatial.XR.Internals
                     ARImageTracker.EndConnection();
 
                     XRMeshTracker.EndConnection();
+
+                    PolySpatialXRHeadTracker.EndConnection();
 
                     break;
                 }

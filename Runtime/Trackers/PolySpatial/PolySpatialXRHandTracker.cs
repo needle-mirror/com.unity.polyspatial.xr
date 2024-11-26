@@ -63,11 +63,14 @@ namespace Unity.PolySpatial.XR.Internals
                 {
                     m_JointData.Add(id, new()
                     {
+                        jointId = (int)id,
                         pose = Pose.identity,
                         radius = 0,
-                        angularVelocity = Vector3.zero,
                         linearVelocity = Vector3.zero,
-                        visionOSRotation = Quaternion.identity
+                        angularVelocity = Vector3.zero,
+                        trackingState = PolySpatialJointTrackingState.None,
+                        visionOSRotation = Quaternion.identity,
+                        visionOSTrackingState = false
                     });
                 }
             }

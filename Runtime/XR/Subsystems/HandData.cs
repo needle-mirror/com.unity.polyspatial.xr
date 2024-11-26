@@ -78,6 +78,7 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
                 // joint data after the fact which causes exceptions.
                 if (!m_Joints.IsCreated)
                     return;
+
                 var index = id.ToIndex();
                 m_Joints[index] = XRHandProviderUtility.CreateJoint(
                     m_Handedness,
@@ -88,7 +89,6 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
                     data.linearVelocity.GetValueOrDefault(),
                     data.angularVelocity.GetValueOrDefault());
 #if INCLUDE_UNITY_XR_VISIONOS && UNITY_VISIONOS
-                m_HandRotations[index] = data.visionOSRotation ?? default;
                 m_VisionOSRotations[index] = data.visionOSRotation ?? default;
                 m_VisionOSTrackingStates[index] = data.visionOSTrackingState;
 #endif

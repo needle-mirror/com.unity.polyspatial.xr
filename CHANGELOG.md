@@ -7,6 +7,25 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [2.1.2] - 2024-11-26
+
+### Added
+- We now track head pose over Play To Device.
+
+### Changed
+- Android no longer excluded in asmdef files.
+
+### Deprecated
+
+### Removed
+
+### Fixed
+- Fixed a bug with Hands over Play To Device that could nondeterministically disable them.
+- Fixed a bug with sending XRMesh data over Play To Device after connecting multiple times.
+- Fixed Image tracking over Play To Device for connecting multiple times.
+
+### Security
+
 ## [2.0.4] - 2024-09-25
 
 ### Added

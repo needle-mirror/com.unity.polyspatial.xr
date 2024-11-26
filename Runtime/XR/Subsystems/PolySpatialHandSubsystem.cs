@@ -200,7 +200,11 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
         }
 
         // This method registers the subsystem descriptor with the SubsystemManager
+#if UNITY_EDITOR
+        [UnityEditor.InitializeOnLoadMethod]
+#else
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+#endif
         static void RegisterDescriptor()
         {
             var handsSubsystemCinfo = new XRHandSubsystemDescriptor.Cinfo
