@@ -21,12 +21,12 @@ namespace Unity.PolySpatial.XR.Internals
                 return;
             }
 
+            m_PolySpatialHostID = polySpatialHostID;
+
             m_MeshManager.meshesChanged += MeshManagerOnMeshesChanged;
 
             PolySpatialARPlaneArray planeEngineData = new ();
             planeEngineData.planes = new List<PolySpatialARPlane>();
-
-            m_PolySpatialHostID = polySpatialHostID;
         }
 
         // This is invoked in `Update` from PolySpatialXRMeshManager where there is a change to the set of meshes that has been detected.

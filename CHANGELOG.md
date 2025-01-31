@@ -7,6 +7,12 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.3.12] - 2025-01-31
+
+### Fixed
+- Updated `HAS_XR_INTERACTION_TOOLKIT` version define to require XRI 3 instead of 2.5.2. This fixes compile errors that can occur if you import XRI 2.x into your project.
+- Fixed an issue preventing XR Meshes from updating over Play To Device.
+
 ## [1.3.11] - 2024-11-13
 
 ### Added

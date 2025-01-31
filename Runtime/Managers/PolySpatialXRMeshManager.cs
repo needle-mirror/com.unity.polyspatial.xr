@@ -216,7 +216,8 @@ namespace Unity.PolySpatial.XR.Internals
         {
             var changeTracker = new PolySpatialXRMeshesChanged();
             changeTracker.addOrUpdatedArray = new List<PolySpatialXRMesh>();
-            foreach (var meshFilter in m_Added)
+            var combinedList = m_Added.Concat(m_Updated);
+            foreach (var meshFilter in combinedList)
             {
                 var meshId = m_MeshIDLookUp[meshFilter];
                 var meshIdString = meshId.ToString();
@@ -412,6 +413,7 @@ namespace Unity.PolySpatial.XR.Internals
 
         void UpdateMeshInfos()
         {
+            s_MeshInfos.Clear();
             if (m_Subsystem.TryGetMeshInfos(s_MeshInfos))
             {
                 foreach (var meshInfo in s_MeshInfos)
