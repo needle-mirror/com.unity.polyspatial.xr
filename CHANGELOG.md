@@ -7,6 +7,19 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [2.2.4] - 2025-03-05
+
+## [2.2.2] - 2025-02-21
+
+### Added
+- Added Windows support for XR Meshes over Play to Device.
+
+### Fixed
+- Fixed a memory leak with ARPlanes in the Editor when using Play To Device.
+- Reset XR providers on connect error to avoid needing to restart P2D app.
+- Updated `HAS_XR_INTERACTION_TOOLKIT` version define to require XRI 3 instead of 2.5.2. This fixes compile errors that can occur if you import XRI 2.x into your project.
+- Fixed an issue preventing XR Meshes from updating over Play To Device.
+
 ## [2.1.2] - 2024-11-26
 
 ### Added

@@ -78,9 +78,9 @@ namespace Unity.PolySpatial.XR.Internals
 #endif
         }
 
-        public unsafe void HandleHostCommand(PolySpatialHostCommand cmd, int argCount, void** argValues, int* argSizes)
+        public unsafe void HandleHostCommand(PolySpatialHostCommandHeader cmdHeader, int argCount, void** argValues, int* argSizes)
         {
-            switch (cmd)
+            switch (cmdHeader.HostCommand)
             {
                 case PolySpatialHostCommand.InitializeARPlanes:
                 {

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine;
 using UnityEngine.XR.ARSubsystems;
@@ -105,6 +106,23 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
             IntPtr.Zero,
             m_Classification);
 
+        // Static list to keep track of all NativeArray instances
+        private static List<NativeArray<Vector2>> s_AllVerticesInstances;
+
+        internal static void DisposeAllVertices()
+        {
+            foreach (var vertices in s_AllVerticesInstances)
+            {
+                if (vertices.IsCreated)
+                {
+                    vertices.Dispose();
+                }
+            }
+
+            // Clear the list after disposing
+            s_AllVerticesInstances.Clear();
+        }
+
         /// <summary>
         /// Constructs a new <see cref="DiscoveredPlane"/>. This is just a data container
         /// for a plane's simulation data. These are typically created by
@@ -140,6 +158,11 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
             m_Classification = classification;
 
             m_Vertices = vertices.IsCreated ? new NativeArray<Vector2>(vertices, Allocator.Persistent) : default;
+
+            // Add the instance to the static list
+            if (s_AllVerticesInstances == null)
+                s_AllVerticesInstances = new List<NativeArray<Vector2>>();
+            s_AllVerticesInstances.Add(m_Vertices);
         }
 
         static TrackableId ToTrackableId(TrackableID? assetId)
@@ -158,6 +181,11 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
             m_TrackingState = (TrackingState)arPlaneInfo.arTrackingState;
             m_Classification = (PlaneClassifications)arPlaneInfo.arClassification;
             m_Vertices = arPlaneInfo.vertices.HasValue ? new NativeArray<Vector2>(arPlaneInfo.vertices.Value, Allocator.Persistent) : default;
+
+            // Add the instance to the static list
+            if (s_AllVerticesInstances == null)
+                s_AllVerticesInstances = new List<NativeArray<Vector2>>();
+            s_AllVerticesInstances.Add(m_Vertices);
         }
 
         /// <summary>

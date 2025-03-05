@@ -282,12 +282,10 @@ namespace Unity.PolySpatial.XR.Internals
 
         void SendUpdatesToTrackers()
         {
-            if (m_Added.Count + m_RemovedMeshIds.Count == 0)
-                return;
-
+            var combinedList = m_Added.Concat(m_Updated);
             var changeTracker = new PolySpatialXRMeshesChanged
             {
-                addOrUpdatedArray = AddOrUpdateMeshes(m_Added, (meshFilter) =>
+                addOrUpdatedArray = AddOrUpdateMeshes(combinedList, (meshFilter) =>
                 {
                     var meshId = m_MeshIDLookUp[meshFilter];
                     return meshId.ToString();
@@ -452,6 +450,7 @@ namespace Unity.PolySpatial.XR.Internals
 
         void UpdateMeshInfos()
         {
+            s_MeshInfos.Clear();
             if (m_Subsystem.TryGetMeshInfos(s_MeshInfos))
             {
                 foreach (var meshInfo in s_MeshInfos)
@@ -480,7 +479,6 @@ namespace Unity.PolySpatial.XR.Internals
                                     m_RemovedMeshIds.Add(meshInfo.MeshId);
                                 }
                             }
-
                             break;
                     }
                 }
@@ -545,10 +543,11 @@ namespace Unity.PolySpatial.XR.Internals
             m_Pending = new MeshQueue();
             m_Generating = new Dictionary<LegacyMeshId, MeshInfo>();
             m_Meshes = new SortedList<TrackableId, MeshFilter>(s_TrackableIdComparer);
-            m_MeshIDLookUp = new Dictionary<MeshFilter, MeshId>();
-            m_RemovedMeshIds = new List<MeshId>();
             m_OnMeshGeneratedDelegate = OnMeshGenerated;
 
+            // PolySpatial Specific
+            m_MeshIDLookUp = new Dictionary<MeshFilter, MeshId>();
+            m_RemovedMeshIds = new List<MeshId>();
             s_Instance = this;
         }
 
@@ -565,10 +564,6 @@ namespace Unity.PolySpatial.XR.Internals
 
         List<MeshFilter> m_Removed;
 
-        List<MeshId> m_RemovedMeshIds;
-
-        Dictionary<MeshFilter, MeshId> m_MeshIDLookUp;
-
         MeshQueue m_Pending;
 
         Dictionary<LegacyMeshId, MeshInfo> m_Generating;
@@ -584,5 +579,10 @@ namespace Unity.PolySpatial.XR.Internals
         static TrackableIdComparer s_TrackableIdComparer = new ();
 
         static List<MeshInfo> s_MeshInfos = new ();
+
+        // PolySpatial Specific
+        List<MeshId> m_RemovedMeshIds;
+
+        Dictionary<MeshFilter, MeshId> m_MeshIDLookUp;
     }
 }

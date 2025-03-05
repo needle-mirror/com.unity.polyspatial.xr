@@ -65,6 +65,12 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
 
             public override void Destroy()
             {
+                CleanUp();
+            }
+
+            void CleanUp()
+            {
+                DiscoveredPlane.DisposeAllVertices();
             }
 
             public void InitializeClient(PolySpatialHostID hostID)
@@ -174,7 +180,7 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
 
             public override void Stop()
             {
-                m_AllPlanes.Clear();
+                CleanUp();
             }
 
             bool TryFindPlane(TrackableId trackableId, out DiscoveredPlane discoveredPlane)

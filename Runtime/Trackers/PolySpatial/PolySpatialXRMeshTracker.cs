@@ -21,13 +21,13 @@ namespace Unity.PolySpatial.XR.Internals
                 return;
             }
 
+            m_PolySpatialHostID = polySpatialHostID;
+
             m_MeshManager.meshesChanged += MeshManagerOnMeshesChanged;
 
             // Send over a snapshot of the current set of meshes before connection.
             // Only call after meshesChanged is set.
             m_MeshManager.SendCurrentMeshes();
-
-            m_PolySpatialHostID = polySpatialHostID;
         }
 
         // This is invoked in `Update` from PolySpatialXRMeshManager where there is a change to the set of meshes that has been detected.

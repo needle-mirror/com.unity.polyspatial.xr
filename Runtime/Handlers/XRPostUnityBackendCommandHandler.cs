@@ -25,19 +25,22 @@ namespace Unity.PolySpatial.XR.Internals
             }
         }
 
-        public unsafe void HandleCommand(PolySpatialCommand cmd, int argCount, void** argValues, int* argSizes)
+        public unsafe void HandleCommand(PolySpatialCommandHeader cmdHeader, int argCount, void** argValues, int* argSizes)
         {
-            switch (cmd)
+            switch (cmdHeader.Command)
             {
                 case PolySpatialCommand.CreateOrUpdateCollider:
                 {
                     foreach (var change in PolySpatialArgs.ExtractChangeListFromArgs<PolySpatialColliderData>(argCount, argValues, argSizes))
                     {
                         var id = change.objectData.instanceId;
-                        var volume = m_UnityBackend.SceneGraph.GetVolumeForIndex(id.hostVolumeIndex);
-                        var entity = volume.IdToEntity[id.id];
-                        var interactableProxy = entity.UnitySceneGraphGameObject.GetOrAddBackingComponent<XRInteractableProxy>();
-                        interactableProxy.Initialize(id, volume.VolumeId);
+                        var viewSubGraph = m_UnityBackend.SceneGraph.ViewSubGraphs[id.hostVolumeIndex];
+                        if (viewSubGraph.VolumeView != null)
+                        {
+                            var entity = viewSubGraph.IidToEntity[id.id];
+                            var interactableProxy = entity.UnitySceneGraphGameObject.GetOrAddBackingComponent<XRInteractableProxy>();
+                            interactableProxy.Initialize(id, viewSubGraph.VolumeView.ViewId, viewSubGraph.RootGameObject.transform.parent);
+                        }
                     }
                     break;
                 }
@@ -49,10 +52,13 @@ namespace Unity.PolySpatial.XR.Internals
                             continue;
 
                         var id = change.objectData.instanceId;
-                        var volume = m_UnityBackend.SceneGraph.GetVolumeForIndex(id.hostVolumeIndex);
-                        var entity = volume.IdToEntity[id.id];
-                        var eventSystemProxy = entity.UnitySceneGraphGameObject.GetOrAddBackingComponent<XRInteractableProxy>();
-                        eventSystemProxy.Initialize(id, volume.VolumeId);
+                        var viewSubGraph = m_UnityBackend.SceneGraph.ViewSubGraphs[id.hostVolumeIndex];
+                        if (viewSubGraph.VolumeView != null)
+                        {
+                            var entity = viewSubGraph.IidToEntity[id.id];
+                            var eventSystemProxy = entity.UnitySceneGraphGameObject.GetOrAddBackingComponent<XRInteractableProxy>();
+                                eventSystemProxy.Initialize(id, viewSubGraph.VolumeView.ViewId, viewSubGraph.RootGameObject.transform.parent);
+                        }
                     }
                     break;
                 }
@@ -64,10 +70,13 @@ namespace Unity.PolySpatial.XR.Internals
                             continue;
 
                         var id = change.objectData.instanceId;
-                        var volume = m_UnityBackend.SceneGraph.GetVolumeForIndex(id.hostVolumeIndex);
-                        var entity = volume.IdToEntity[id.id];
-                        var eventSystemProxy = entity.UnitySceneGraphGameObject.GetOrAddBackingComponent<XRInteractableProxy>();
-                        eventSystemProxy.Initialize(id, volume.VolumeId);
+                        var viewSubGraph = m_UnityBackend.SceneGraph.ViewSubGraphs[id.hostVolumeIndex];
+                        if (viewSubGraph.VolumeView != null)
+                        {
+                            var entity = viewSubGraph.IidToEntity[id.id];
+                            var eventSystemProxy = entity.UnitySceneGraphGameObject.GetOrAddBackingComponent<XRInteractableProxy>();
+                            eventSystemProxy.Initialize(id, viewSubGraph.VolumeView.ViewId, viewSubGraph.RootGameObject.transform.parent);
+                        }
                     }
                     break;
                 }

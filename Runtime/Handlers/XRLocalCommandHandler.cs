@@ -41,9 +41,9 @@ namespace Unity.PolySpatial.XR.Internals
             }
         }
 
-        public unsafe void HandleCommand(PolySpatialCommand cmd, int argCount, void** argValues, int* argSizes)
+        public unsafe void HandleCommand(PolySpatialCommandHeader cmdHeader, int argCount, void** argValues, int* argSizes)
         {
-            switch (cmd)
+            switch (cmdHeader.Command)
             {
                 case PolySpatialCommand.BeginAppFrame:
                 {
@@ -115,7 +115,7 @@ namespace Unity.PolySpatial.XR.Internals
                 }
             }
 
-            NextHandler.HandleCommand(cmd, argCount, argValues, argSizes);
+            NextHandler.HandleCommand(cmdHeader, argCount, argValues, argSizes);
         }
     }
 }

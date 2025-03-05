@@ -14,15 +14,17 @@ namespace Unity.PolySpatial.Shell.InputDevices
     {
         PolySpatialInstanceID m_ColliderID;
         PolySpatialInstanceID m_VolumeID;
+        Transform m_VolumeParent;
 
         internal PolySpatialInstanceID ColliderID => m_ColliderID;
 
-        internal void Initialize(PolySpatialInstanceID colliderID, PolySpatialInstanceID volumeID)
+        internal void Initialize(PolySpatialInstanceID colliderID, PolySpatialInstanceID volumeID, Transform volumeParent)
         {
             Debug.Assert(colliderID.IsValid());
             Debug.Assert(volumeID.IsValid());
             m_ColliderID = colliderID;
             m_VolumeID = volumeID;
+            m_VolumeParent = volumeParent;
         }
 
         protected override void OnSelectEntered(SelectEnterEventArgs args)
@@ -116,7 +118,7 @@ namespace Unity.PolySpatial.Shell.InputDevices
                         interactionRayDirection = rayInteractor.rayOriginTransform.forward,
                         kind = PolySpatialPointerKind.IndirectPinch
                     };
-                    return true;
+                    break;
                 case NearFarInteractor nearFarInteractor:
                     if (nearFarInteractor is not IXRRayProvider rayProvider)
                         return false;
@@ -149,7 +151,7 @@ namespace Unity.PolySpatial.Shell.InputDevices
                             pointerEvent.kind = PolySpatialPointerKind.IndirectPinch;
                             break;
                     }
-                    return true;
+                    break;
                 case XRPokeInteractor pokeInteractor:
                     if (!pokeInteractor.pokeStateData.Value.meetsRequirements)
                         return false;
@@ -168,10 +170,24 @@ namespace Unity.PolySpatial.Shell.InputDevices
                         interactionRayDirection = pokeInteractorAttachTransform.forward,
                         kind = PolySpatialPointerKind.Touch
                     };
-                    return true;
+                    break;
                 default:
                     return false;
             }
+
+            if (m_VolumeParent != null)
+            {
+                var worldToVolume = m_VolumeParent.worldToLocalMatrix;
+                var worldToVolumeRotation = Quaternion.Inverse(m_VolumeParent.rotation);
+
+                pointerEvent.interactionPosition = worldToVolume.MultiplyPoint3x4(pointerEvent.interactionPosition);
+                pointerEvent.inputDevicePosition = worldToVolume.MultiplyPoint3x4(pointerEvent.inputDevicePosition);
+                pointerEvent.interactionRayOrigin = worldToVolume.MultiplyPoint3x4(pointerEvent.interactionRayOrigin);
+                pointerEvent.interactionRayDirection = worldToVolumeRotation * pointerEvent.interactionRayDirection;
+                pointerEvent.inputDeviceRotation = worldToVolumeRotation * pointerEvent.inputDeviceRotation;
+            }
+
+            return true;
         }
     }
 }

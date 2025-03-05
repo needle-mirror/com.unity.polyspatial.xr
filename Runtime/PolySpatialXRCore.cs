@@ -51,6 +51,7 @@ namespace Unity.PolySpatial.XR.Internals
 
         List<IPolySpatialHostCommandHandler> m_HostCommandHandlers = new ();
         XRLocalCommandHandler m_XRLocalCommandHandler;
+        PolySpatialNetworkAppHostBase m_AppHostBase;
 
         internal ARData m_ARSessionData;
 
@@ -73,6 +74,8 @@ namespace Unity.PolySpatial.XR.Internals
         // This will only run in the P2D app and not in the editor.
         void AddLocalCommandHandler(PolySpatialNetworkAppHostBase appHost, IPolySpatialLocalBackend backend)
         {
+            m_AppHostBase = appHost;
+
             m_ARSessionData = new ARData();
 
             m_ARSessionData.m_ARPlaneTracker = new PolySpatialARPlaneTracker();
@@ -81,8 +84,23 @@ namespace Unity.PolySpatial.XR.Internals
             m_ARSessionData.m_XRImageTracker = new PolySpatialARImageTracker();
 
             m_XRLocalCommandHandler = new();
-            m_XRLocalCommandHandler.NextHandler = appHost.NextHandler;
-            appHost.NextHandler = m_XRLocalCommandHandler;
+            m_XRLocalCommandHandler.NextHandler = m_AppHostBase.NextHandler;
+            m_AppHostBase.NextHandler = m_XRLocalCommandHandler;
+
+            m_AppHostBase.ConnectionError += OnAppHostConnectionError;
+        }
+
+        // This should stay in sync with the PolySpatialCommand.EndConnection handler in XRLocalCommandHandler.cs
+        private void OnAppHostConnectionError(ErrorCode errorcode, string errormessage)
+        {
+            if (m_ARSessionData == null)
+                return;
+
+            m_ARSessionData.m_ARPlaneTracker.EndConnection();
+            m_ARSessionData.m_XRHandTracker.EndConnection();
+            m_ARSessionData.m_XRImageTracker.EndConnection();
+            m_ARSessionData.m_XRMeshTracker.EndConnection();
+            PolySpatialXRHeadTracker.EndConnection();
         }
 
         /// <summary>
@@ -112,6 +130,12 @@ namespace Unity.PolySpatial.XR.Internals
             }
 
             PolySpatialNetworkAppHostBase.OnEnableCommandHandlers -= AddLocalCommandHandler;
+
+            if (m_AppHostBase != null)
+            {
+                m_AppHostBase.ConnectionError -= OnAppHostConnectionError;
+                m_AppHostBase = null;
+            }
         }
 
         internal override void Update()

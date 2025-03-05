@@ -128,11 +128,13 @@ namespace Unity.PolySpatial.XR.Internals
         {
             m_HostConnected = false;
             if (m_TrackedImageManager != null)
+            {
                 m_TrackedImageManager.trackablesChanged.RemoveListener(OnChanged);
 
-            // When the TrackedImageManager gets enabled it resets a bunch of state.  So disabled it so when we reconnect
-            // and readd the library it will re-enable which will setup state correctly.
-            m_TrackedImageManager.enabled = false;
+                // When the TrackedImageManager gets enabled it resets a bunch of state.  So disabled it so when we reconnect
+                // and readd the library it will re-enable which will setup state correctly.
+                m_TrackedImageManager.enabled = false;
+            }
         }
 
         public void Dispose()
