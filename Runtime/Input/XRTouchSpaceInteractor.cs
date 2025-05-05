@@ -61,6 +61,7 @@ namespace Unity.PolySpatial.XR.Input
                         return base.isSelectActive;
                     case SpatialPointerPhase.Ended:
                     case SpatialPointerPhase.None:
+                    case SpatialPointerPhase.Cancelled:
                         return false;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -87,6 +88,7 @@ namespace Unity.PolySpatial.XR.Input
                     break;
                 case SpatialPointerPhase.Began:
                 case SpatialPointerPhase.Moved:
+                case SpatialPointerPhase.Cancelled:
                 case SpatialPointerPhase.Ended:
                     if (TryGetInteractable(m_SpatialPointerState.targetId, out var interactable))
                         targets.Add(interactable);
