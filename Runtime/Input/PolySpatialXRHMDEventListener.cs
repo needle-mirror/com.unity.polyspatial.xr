@@ -28,7 +28,7 @@ namespace Unity.PolySpatial.InputDevices
         public PolySpatialXRHMDEventListener()
         {
 #if XR_DEVICES_AVAILABLE
-            InputUtils.AddDevice(out PolySpatialXRHMD device);
+            InputUtils.AddDevice(out PolySpatialXRHMD device, "PolySpatialXRHMDEventListener");
             m_XRHMD = device;
 #endif
 

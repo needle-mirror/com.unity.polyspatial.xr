@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
 using Unity.PolySpatial.Internals;
 using Unity.PolySpatial.Internals.Subsystems;
-using UnityEngine;
 using UnityEngine.Scripting;
 
 namespace Unity.PolySpatial.XR.Internals
@@ -49,9 +47,7 @@ namespace Unity.PolySpatial.XR.Internals
             }
         }
 
-        List<IPolySpatialHostCommandHandler> m_HostCommandHandlers = new ();
-        XRLocalCommandHandler m_XRLocalCommandHandler;
-        PolySpatialNetworkAppHostBase m_AppHostBase;
+        PolySpatialNetworkAppHost m_NetworkAppHost;
 
         internal ARData m_ARSessionData;
 
@@ -59,35 +55,19 @@ namespace Unity.PolySpatial.XR.Internals
         {
         }
 
-        /// <summary>
-        /// Initializes the host handlers depending on the current networking mode
-        /// </summary>
-        internal override void Initialize()
+        internal void InitializeARData()
         {
-            if (PolySpatialCore.CurrentNetworkingMode == PolySpatialSettings.NetworkingMode.LocalAndClient)
-                AddHostCommandHandlers();
+            m_NetworkAppHost = PolySpatialCore.CommandHandlerGraph.NetworkAppHost;
 
-            // PolySpatialNetworkSingleAppHost does not exist when we initialize.  We can't register a IPolySpatialCommandHandler until it exists.
-            PolySpatialNetworkAppHostBase.OnEnableCommandHandlers += AddLocalCommandHandler;
-        }
+            m_ARSessionData = new ARData
+            {
+                m_ARPlaneTracker = new PolySpatialARPlaneTracker(),
+                m_XRHandTracker = new PolySpatialXRHandTracker(),
+                m_XRMeshTracker = new PolySpatialXRMeshTracker(),
+                m_XRImageTracker = new PolySpatialARImageTracker()
+            };
 
-        // This will only run in the P2D app and not in the editor.
-        void AddLocalCommandHandler(PolySpatialNetworkAppHostBase appHost, IPolySpatialLocalBackend backend)
-        {
-            m_AppHostBase = appHost;
-
-            m_ARSessionData = new ARData();
-
-            m_ARSessionData.m_ARPlaneTracker = new PolySpatialARPlaneTracker();
-            m_ARSessionData.m_XRHandTracker = new PolySpatialXRHandTracker();
-            m_ARSessionData.m_XRMeshTracker = new PolySpatialXRMeshTracker();
-            m_ARSessionData.m_XRImageTracker = new PolySpatialARImageTracker();
-
-            m_XRLocalCommandHandler = new();
-            m_XRLocalCommandHandler.NextHandler = m_AppHostBase.NextHandler;
-            m_AppHostBase.NextHandler = m_XRLocalCommandHandler;
-
-            m_AppHostBase.ConnectionError += OnAppHostConnectionError;
+            m_NetworkAppHost.ConnectionError += OnAppHostConnectionError;
         }
 
         // This should stay in sync with the PolySpatialCommand.EndConnection handler in XRLocalCommandHandler.cs
@@ -104,37 +84,20 @@ namespace Unity.PolySpatial.XR.Internals
         }
 
         /// <summary>
-        /// Add the handlers that will handle commands coming from a host over the network
-        /// </summary>
-        void AddHostCommandHandlers()
-        {
-            var commandHandler = new XRHostCommandHandler();
-            commandHandler.Initialize();
-            m_HostCommandHandlers.Add(commandHandler);
-        }
-
-        /// <summary>
         /// Cleanup all the handlers
         /// </summary>
         public override void Dispose()
         {
-            foreach (var handler in m_HostCommandHandlers)
-                (handler as IDisposable)?.Dispose();
-
-            m_HostCommandHandlers.Clear();
-
             if (m_ARSessionData != null)
             {
                 m_ARSessionData.Dispose();
                 m_ARSessionData = null;
             }
 
-            PolySpatialNetworkAppHostBase.OnEnableCommandHandlers -= AddLocalCommandHandler;
-
-            if (m_AppHostBase != null)
+            if (m_NetworkAppHost != null)
             {
-                m_AppHostBase.ConnectionError -= OnAppHostConnectionError;
-                m_AppHostBase = null;
+                m_NetworkAppHost.ConnectionError -= OnAppHostConnectionError;
+                m_NetworkAppHost = null;
             }
         }
 
@@ -144,4 +107,3 @@ namespace Unity.PolySpatial.XR.Internals
         }
     }
 }
-

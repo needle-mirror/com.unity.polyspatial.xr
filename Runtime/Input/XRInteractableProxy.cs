@@ -86,7 +86,7 @@ namespace Unity.PolySpatial.Shell.InputDevices
         {
             var hostId = m_ColliderID.hostId;
             var type = PolySpatialInputType.Pointer;
-            PolySpatialCore.HostMulticastHandler?.HostCommand(PolySpatialHostCommand.InputEvent, &type, &hostId, events.AsSpan());
+            PolySpatialCore.CommandHandlerGraph.MulticastHostHandler?.HostCommand(PolySpatialHostCommand.InputEvent, &type, &hostId, events.AsSpan());
         }
 
         NativeArray<PolySpatialPointerEvent> ConstructEvents(PolySpatialPointerEvent pointerEvent)

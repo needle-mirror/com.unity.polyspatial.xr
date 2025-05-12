@@ -1,28 +1,18 @@
 #if HAS_XR_INTERACTION_TOOLKIT
 using Unity.PolySpatial.Internals;
 using Unity.PolySpatial.Shell.InputDevices;
-using UnityEngine;
 
 namespace Unity.PolySpatial.XR.Internals
 {
-    // Ensure it subscribes before PolySpatialNetworkAppHostBase OnEnable
-    [DefaultExecutionOrder(-10)]
-    class XRPostUnityBackendCommandHandler : MonoBehaviour, IPolySpatialCommandHandler
+    class XRPostUnityBackendCommandHandler : IPolySpatialChainableCommandHandler
     {
+        public IPolySpatialCommandHandler NextHandler { get; set; }
+
         PolySpatialUnityBackend m_UnityBackend;
 
-        void Awake()
+        internal XRPostUnityBackendCommandHandler(PolySpatialUnityBackend unityBackend)
         {
-            PolySpatialNetworkAppHostBase.OnEnableCommandHandlers += AddCommandHandler;
-        }
-
-        void AddCommandHandler(PolySpatialNetworkAppHostBase appHost, IPolySpatialLocalBackend backend)
-        {
-            if (backend is PolySpatialUnityBackend unityBackend)
-            {
-                m_UnityBackend = unityBackend;
-                unityBackend.NextHandler = this;
-            }
+            m_UnityBackend = unityBackend;
         }
 
         public unsafe void HandleCommand(PolySpatialCommandHeader cmdHeader, int argCount, void** argValues, int* argSizes)
@@ -81,6 +71,19 @@ namespace Unity.PolySpatial.XR.Internals
                     break;
                 }
             }
+
+            NextHandler.HandleCommand(cmdHeader, argCount, argValues, argSizes);
+        }
+
+        [CommandHandlerCreationCallback(stage: CommandHandlerGraph.Stage.PostLocalBackend)]
+        internal static IPolySpatialChainableCommandHandler Create(CommandHandlerGraph.HandlerCreationContext context)
+        {
+            if (context.HasNetworkAppHost && context.CommandHandlerGraph.LocalBackend is PolySpatialUnityBackend unityBackend)
+            {
+                return new XRPostUnityBackendCommandHandler(unityBackend);
+            }
+
+            return null;
         }
     }
 }

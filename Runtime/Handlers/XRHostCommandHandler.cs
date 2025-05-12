@@ -15,8 +15,10 @@ namespace Unity.PolySpatial.XR.Internals
     /// Host Command handler, this should receive ARPlane data from a connected host,
     /// as well Hand data, mesh data, etc. and interfacing with the PolySpatial XR Plug-in to therefore provide ARFoundation with this data.
     /// </summary>
-    class XRHostCommandHandler : IPolySpatialHostCommandHandler, IDisposable
+    class XRHostCommandHandler : IPolySpatialChainableHostCommandHandler, IDisposable
     {
+        public IPolySpatialHostCommandHandler NextHostHandler { get; set; }
+
         PolySpatialXRPlaneSubsystem m_PolySpatialXRPlaneSubsystem;
         List<PolySpatialXRPlaneSubsystem> m_PlaneSubsystems = new (1);
 
@@ -64,15 +66,8 @@ namespace Unity.PolySpatial.XR.Internals
             }
         }
 
-        public void Initialize()
-        {
-            PolySpatialCore.HostMulticastHandler?.AddHandler(this);
-        }
-
         public void Dispose()
         {
-            PolySpatialCore.HostMulticastHandler?.RemoveHandler(this);
-
 #if INCLUDE_UNITY_XR_HANDS
             DisposeHandSubsystems();
 #endif
@@ -169,6 +164,8 @@ namespace Unity.PolySpatial.XR.Internals
                     break;
                 }
             }
+
+            NextHostHandler.HandleHostCommand(cmdHeader, argCount, argValues, argSizes);
         }
 
         static unsafe void OnInputEvent(PolySpatialInputType type, PolySpatialHostID hostId, int eventCount, void* eventsPtr)
@@ -305,6 +302,12 @@ namespace Unity.PolySpatial.XR.Internals
                 subsystem.UpdateHandLayout(updatedHandLayout);
             }
 #endif
+        }
+
+        [HostCommandHandlerCreationCallback(stage: CommandHandlerGraph.Stage.HostConnectionManager)]
+        internal static IPolySpatialChainableHostCommandHandler Create(CommandHandlerGraph.HandlerCreationContext context)
+        {
+            return new XRHostCommandHandler();
         }
     }
 }

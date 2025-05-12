@@ -10,7 +10,7 @@ namespace Unity.PolySpatial.XR.Internals
     /// ARPlane data, Hand data, etc. can be generated on the platform, we need to send this
     /// to the client when they connect to the host.
     /// </summary>
-    class XRLocalCommandHandler : IPolySpatialCommandHandler
+    class XRLocalCommandHandler : IPolySpatialChainableCommandHandler
     {
         public IPolySpatialCommandHandler NextHandler { get; set; }
 
@@ -35,6 +35,7 @@ namespace Unity.PolySpatial.XR.Internals
                 {
                     m_Core = (PolySpatialXRCore)PolySpatialCore.Instance.GetSubsystemById(PolySpatialXRCore.k_SubsystemId);
                     Debug.Assert(m_Core != null);
+                    m_Core.InitializeARData();
                 }
 
                 return m_Core;
@@ -116,6 +117,16 @@ namespace Unity.PolySpatial.XR.Internals
             }
 
             NextHandler.HandleCommand(cmdHeader, argCount, argValues, argSizes);
+        }
+
+        [CommandHandlerCreationCallback(stage: CommandHandlerGraph.Stage.NetworkAppHost)]
+        static IPolySpatialChainableCommandHandler Create(CommandHandlerGraph.HandlerCreationContext context)
+        {
+            // The Subsystem will only be registered if the PolySpatialRuntime is enabled
+            if (!PolySpatialRuntime.Enabled)
+                return null;
+
+            return new XRLocalCommandHandler();
         }
     }
 }

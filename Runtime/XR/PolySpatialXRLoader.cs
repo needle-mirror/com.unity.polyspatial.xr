@@ -83,7 +83,7 @@ namespace Unity.PolySpatial.XR.Internals
             DestroySubsystem<XRMeshSubsystem>();
             DestroySubsystem<XRPlaneSubsystem>();
             DestroySubsystem<XRSessionSubsystem>();
-            m_HMDEventListener.Deinitialize();
+            m_HMDEventListener?.Deinitialize();
             m_HMDEventListener = null;
 
             return true;
