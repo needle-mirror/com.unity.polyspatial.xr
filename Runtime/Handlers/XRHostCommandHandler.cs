@@ -1,12 +1,14 @@
 using FlatSharp.Runtime.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Tracing;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.PolySpatial.InputDevices;
 using Unity.PolySpatial.Internals;
 using Unity.PolySpatial.XR.Internals.Subsystems;
 using UnityEngine;
+using UnityEngine.InputSystem.Utilities;
 using UnityEngine.Pool;
 
 namespace Unity.PolySpatial.XR.Internals
@@ -24,9 +26,6 @@ namespace Unity.PolySpatial.XR.Internals
 
         PolySpatialXRImageTrackingSubsystem m_PolySpatialXRImageSubsystem;
         List<PolySpatialXRImageTrackingSubsystem> m_ImageTrackingSubsystems = new (1);
-
-
-        PolySpatialXRMeshSubsystemProcessor m_PolySpatialARMeshSubsystemProcessor;
 
         PolySpatialXRPlaneSubsystem PolySpatialXRPlaneSubsystem
         {
@@ -64,6 +63,26 @@ namespace Unity.PolySpatial.XR.Internals
 
                 return m_PolySpatialXRImageSubsystem;
             }
+        }
+
+        PolySpatialXRDisplaySubsystemProcessor m_PolySpatialXRDisplaySubsystemProcessor;
+
+        PolySpatialXRDisplaySubsystemProcessor PolySpatialXRDisplaySubsystemProcessor
+        {
+            get
+            {
+                if (m_PolySpatialXRDisplaySubsystemProcessor == null)
+                    m_PolySpatialXRDisplaySubsystemProcessor = new();
+
+                return m_PolySpatialXRDisplaySubsystemProcessor;
+            }
+        }
+
+        internal XRHostCommandHandler()
+        {
+#if UNITY_EDITOR || ENABLE_XR_INPUT_REMOTING
+            PolySpatialXrInputTracker.Instance?.Initialize();
+#endif
         }
 
         public void Dispose()
@@ -155,6 +174,16 @@ namespace Unity.PolySpatial.XR.Internals
 
                     break;
                 }
+                case PolySpatialHostCommand.SetXRDisplayData:
+                {
+                    PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out PolySpatialInstanceID* id, out Span<byte> data);
+                    fixed (byte* p = data)
+                    {
+                        var displayData = PolySpatialXRDisplayData.Serializer.Parse(data.Length, p);
+                        SetXRDisplayData(displayData, data, *id);
+                    }
+                    break;
+                }
 
                 // InputCommandCategory
                 case PolySpatialHostCommand.InputEvent:
@@ -184,6 +213,28 @@ namespace Unity.PolySpatial.XR.Internals
 
                     PolySpatialXRHMDEventListener.OnHeadPoseEvent(hostId, poseEvents);
                     break;
+            }
+        }
+
+        [NonSerialized]
+        PolySpatialXRCore m_Core;
+
+        PolySpatialXRCore Core
+        {
+            get
+            {
+                if (m_Core == null)
+                {
+                    m_Core = (PolySpatialXRCore)PolySpatialCore.Instance.GetSubsystemById(PolySpatialXRCore.k_SubsystemId);
+                    Debug.Assert(m_Core != null);
+                    if (m_Core.m_ARSessionData == null)
+                    {
+                        m_Core.InitializeARData();
+                    }
+                    XRInputProvider.EnsureInitialized();
+                }
+
+                return m_Core;
             }
         }
 
@@ -239,8 +290,8 @@ namespace Unity.PolySpatial.XR.Internals
 
         void SendXRMeshData(PolySpatialXRMeshesChanged meshData)
         {
-            if (PolySpatialXRMeshSubsystemProcessor.instance != null)
-                PolySpatialXRMeshSubsystemProcessor.instance.ProcessMeshUpdates(meshData);
+            // Will be null while ending Play.  We want to discard any incoming mesh Data while we are exiting Play Mode.
+            PolySpatialXRMeshSubsystemProcessor.instance?.ProcessMeshUpdates(meshData);
         }
 
 #if INCLUDE_UNITY_XR_HANDS
@@ -302,6 +353,11 @@ namespace Unity.PolySpatial.XR.Internals
                 subsystem.UpdateHandLayout(updatedHandLayout);
             }
 #endif
+        }
+
+        void SetXRDisplayData(PolySpatialXRDisplayData displayData, Span<byte> rawData, PolySpatialInstanceID id)
+        {
+            PolySpatialXRDisplaySubsystemProcessor.SetData(displayData, rawData);
         }
 
         [HostCommandHandlerCreationCallback(stage: CommandHandlerGraph.Stage.HostConnectionManager)]

@@ -25,6 +25,9 @@ namespace Unity.PolySpatial.XR.Internals
         /// </summary>
         ARPlaneManager m_PlaneManager;
 
+        // Track which planes have been sent through GetChanges
+        HashSet<TrackableID> m_SentPlanes = new();
+
         // This is invoked each frame on `Update` from ARPlaneManager
         void OnTrackablesChanged(ARTrackablesChangedEventArgs<ARPlane> planeChanges)
         {
@@ -61,7 +64,24 @@ namespace Unity.PolySpatial.XR.Internals
             };
         }
 
-        public void InitializeARPlanes(PolySpatialHostID hostID)
+        // The Sim's XRPlaneSybsystem will notify us it wants to Start tracking Planes here.
+        internal void Start()
+        {
+            InitializeARPlanes();
+        }
+
+        // The Sim's XRPlaneSybsystem will notify us it wants to Stop tracking Planes here.
+        internal void Stop()
+        {
+            EndConnection();
+        }
+
+        internal void SetHostID(PolySpatialHostID hostID)
+        {
+            m_PolySpatialHostID = hostID;
+        }
+
+        internal void InitializeARPlanes()
         {
             var planeManagers = UnityObject.FindObjectsByType<ARPlaneManager>(FindObjectsSortMode.None);
 
@@ -78,13 +98,18 @@ namespace Unity.PolySpatial.XR.Internals
 
             m_PlaneManager.trackablesChanged.AddListener(OnTrackablesChanged);
 
-            PolySpatialARPlaneArray planeEngineData = new ();
+            var planeEngineData = new PolySpatialARPlaneArray();
             planeEngineData.planes = new List<PolySpatialARPlane>();
 
-            m_PolySpatialHostID = hostID;
-
             foreach (var plane in m_PlaneManager.trackables)
-                planeEngineData.planes.Add(CreatePolySpatialARPlane(plane, ARPlaneOperation.Created));
+            {
+                var localPlane = CreatePolySpatialARPlane(plane, ARPlaneOperation.Created);
+                planeEngineData.planes.Add(localPlane);
+                if (localPlane.trackingId.HasValue)
+                {
+                    m_SentPlanes.Add(localPlane.trackingId.Value);
+                }
+            }
 
             // Send this event regardless of there being any planes.
             // There is the possibility of a race condition on a Client connecting with a Host, where before this
@@ -98,8 +123,9 @@ namespace Unity.PolySpatial.XR.Internals
             m_HostConnected = true;
         }
 
-        public void EndConnection()
+        internal void EndConnection()
         {
+            m_SentPlanes.Clear();
             m_HostConnected = false;
             if (m_PlaneManager != null)
                 m_PlaneManager.trackablesChanged.RemoveListener(OnTrackablesChanged);
@@ -114,17 +140,34 @@ namespace Unity.PolySpatial.XR.Internals
             if (!m_HostConnected)
                 return;
 
-            PolySpatialARPlaneArray planeEngineData = new ();
+            var planeEngineData = new PolySpatialARPlaneArray();
             planeEngineData.planes = new List<PolySpatialARPlane>();
 
             foreach (var plane in removed)
                 planeEngineData.planes.Add(CreatePolySpatialARPlane(plane.Value, ARPlaneOperation.Removed));
 
             foreach (var plane in added)
-                planeEngineData.planes.Add(CreatePolySpatialARPlane(plane, ARPlaneOperation.Created));
+            {
+                var localPlane = CreatePolySpatialARPlane(plane, ARPlaneOperation.Created);
+                planeEngineData.planes.Add(localPlane);
+                if (localPlane.trackingId.HasValue)
+                    m_SentPlanes.Add(localPlane.trackingId.Value);
+            }
 
             foreach (var plane in updated)
-                planeEngineData.planes.Add(CreatePolySpatialARPlane(plane, ARPlaneOperation.Updated));
+            {
+                var trackableID = new TrackableID()
+                {
+                    subId1 = plane.trackableId.subId1,
+                    subId2 = plane.trackableId.subId2
+                };
+                var operation = m_SentPlanes.Contains(trackableID) ? ARPlaneOperation.Updated : ARPlaneOperation.Created;
+                planeEngineData.planes.Add(CreatePolySpatialARPlane(plane, operation));
+                if (operation == ARPlaneOperation.Created)
+                {
+                    m_SentPlanes.Add(trackableID);
+                }
+            }
 
             if (planeEngineData.planes.Count > 0)
             {
@@ -135,6 +178,7 @@ namespace Unity.PolySpatial.XR.Internals
 
         public void Dispose()
         {
+            m_SentPlanes.Clear();
             if (m_PlaneManager != null)
                 m_PlaneManager.trackablesChanged.RemoveListener(OnTrackablesChanged);
         }

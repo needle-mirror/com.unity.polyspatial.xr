@@ -135,7 +135,7 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
                         tex2d = ConvertTextureToBGRA32(tex2d);
                     }
 
-                    ConversionHelpers.ToPolySpatialTextureData(tex2d, (texDesc, texBytes) =>
+                    ConversionHelpers.ToPolySpatialTextureData(tex2d, default, (texDesc, texBytes) =>
                     {
                         PolySpatialXRReferenceImage polySpatialRefImage = new()
                         {

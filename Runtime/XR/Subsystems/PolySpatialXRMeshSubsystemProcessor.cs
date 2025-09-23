@@ -91,6 +91,8 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
             }
 
             m_NativeArrays.Clear();
+
+            s_Instance = null;
         }
 
         internal void ProcessMeshUpdates(PolySpatialXRMeshesChanged meshData)

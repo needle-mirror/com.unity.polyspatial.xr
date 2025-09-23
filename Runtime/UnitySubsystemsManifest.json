@@ -2,9 +2,20 @@
     "name": "PolySpatial XR Plug-in",
     "version": "1.0.0",
     "libraryName": "PolySpatialXRPlugin",
+    "inputs": [
+        {
+            "id": "PolySpatialXR-Input"
+        }
+    ],
     "meshings": [
         {
             "id": "PolySpatialXR-Meshing"
+        }
+    ],
+    "displays": [
+        {
+            "id": "PolySpatialXR-Display",
+            "supportedMirrorBlitReservedModes" : ["leftEye", "rightEye", "sideBySide"]
         }
     ]
 }

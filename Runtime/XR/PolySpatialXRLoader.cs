@@ -18,6 +18,7 @@ namespace Unity.PolySpatial.XR.Internals
     /// </summary>
     public class PolySpatialXRLoader : XRLoaderHelper
     {
+        static List<XRDisplaySubsystemDescriptor> s_DisplaySubsystemDescriptors = new();
         static List<XRSessionSubsystemDescriptor> s_SessionSubsystemDescriptors = new ();
         static List<XRPlaneSubsystemDescriptor> s_PlaneSubsystemDescriptors = new ();
         static List<XRImageTrackingSubsystemDescriptor> s_ImageTrackingSubsystemDescriptors = new ();
@@ -37,13 +38,12 @@ namespace Unity.PolySpatial.XR.Internals
         /// <returns>`True` if the session subsystem was successfully created, otherwise `false`.</returns>
         public override bool Initialize()
         {
+            CreateSubsystem<XRDisplaySubsystemDescriptor, XRDisplaySubsystem>(s_DisplaySubsystemDescriptors, PolySpatialXRDisplaySubsystemProcessor.k_SubsystemId);
             CreateSubsystem<XRSessionSubsystemDescriptor, XRSessionSubsystem>(s_SessionSubsystemDescriptors, PolySpatialXRSessionSubsystem.k_SubsystemId);
             CreateSubsystem<XRPlaneSubsystemDescriptor, XRPlaneSubsystem>(s_PlaneSubsystemDescriptors, PolySpatialXRPlaneSubsystem.k_SubsystemId);
             CreateSubsystem<XRMeshSubsystemDescriptor, XRMeshSubsystem>(s_MeshSubsystemDescriptors, PolySpatialXRMeshSubsystemProcessor.k_SubsystemId);
             CreateSubsystem<XRImageTrackingSubsystemDescriptor, XRImageTrackingSubsystem>(s_ImageTrackingSubsystemDescriptors,
                 PolySpatialXRImageTrackingSubsystem.k_SubsystemId);
-
-            Logging.Log(LogCategory.XR, "Initialize PolySpatialXRLoader");
 
             var sessionSubsystem = GetLoadedSubsystem<XRSessionSubsystem>();
             if (sessionSubsystem == null)
@@ -62,6 +62,7 @@ namespace Unity.PolySpatial.XR.Internals
 #endif
 
             m_HMDEventListener = new PolySpatialXRHMDEventListener();
+            XRInputProvider.EnsureInitialized();
 
             Logging.Log(LogCategory.XR, "Initialize PolySpatialXRLoader");
 
@@ -83,6 +84,7 @@ namespace Unity.PolySpatial.XR.Internals
             DestroySubsystem<XRMeshSubsystem>();
             DestroySubsystem<XRPlaneSubsystem>();
             DestroySubsystem<XRSessionSubsystem>();
+            DestroySubsystem<XRDisplaySubsystem>();
             m_HMDEventListener?.Deinitialize();
             m_HMDEventListener = null;
 

@@ -14,6 +14,8 @@ namespace Unity.PolySpatial.XR.Internals
     {
         public IPolySpatialCommandHandler NextHandler { get; set; }
 
+        PolySpatialXRDisplayTracker XRDisplayTracker => Core.m_ARSessionData.m_XRDisplayTracker;
+
         PolySpatialARPlaneTracker ARPlaneTracker => Core.m_ARSessionData.m_ARPlaneTracker;
 
         PolySpatialXRHandTracker XRHandTracker => Core.m_ARSessionData.m_XRHandTracker;
@@ -23,6 +25,10 @@ namespace Unity.PolySpatial.XR.Internals
         PolySpatialXRMeshTracker XRMeshTracker => Core.m_ARSessionData.m_XRMeshTracker;
 
         PolySpatialARImageTracker ARImageTracker => Core.m_ARSessionData.m_XRImageTracker;
+
+#if UNITY_EDITOR || ENABLE_XR_INPUT_REMOTING
+        PolySpatialXrInputTracker XRInputTracker => Core.m_ARSessionData.m_XRInputTracker;
+#endif
 
         [NonSerialized]
         PolySpatialXRCore m_Core;
@@ -58,12 +64,9 @@ namespace Unity.PolySpatial.XR.Internals
                 }
                 case PolySpatialCommand.BeginConnection:
                 {
-                    if (Core.m_ARSessionData == null)
-                        break;
-
                     PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out PolySpatialInstanceID* id, out Span<byte> _);
-                    // Send the current state of the ARPlane tracking. ARPlane tracking state might be active when a Client connects.
-                    ARPlaneTracker.InitializeARPlanes(id->hostId);
+
+                    ARPlaneTracker.SetHostID(id->hostId);
 
                     // Send the current state of the hand tracking. Hand tracking state might be active when a Client connects.
                     XRHandTracker.InitHandTracking(id->hostId);
@@ -91,6 +94,15 @@ namespace Unity.PolySpatial.XR.Internals
 
                     PolySpatialXRHeadTracker.EndConnection();
 
+#if UNITY_EDITOR || ENABLE_XR_INPUT_REMOTING
+                    XRInputTracker.EndConnection();
+#endif
+                    break;
+                }
+                case PolySpatialCommand.BeginSession:
+                {
+                    PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out PolySpatialInstanceID* id, out Span<byte> _);
+                    XRDisplayTracker?.StartSession(id->hostId);
                     break;
                 }
                 case PolySpatialCommand.CreateOrUpdateReferenceImageLibrary:
@@ -114,6 +126,16 @@ namespace Unity.PolySpatial.XR.Internals
                     }
                     break;
                 }
+                case PolySpatialCommand.XRPlaneSubsystemStart:
+                {
+                    ARPlaneTracker.Start();
+                    break;
+                }
+                case PolySpatialCommand.XRPlaneSubsystemStop:
+                {
+                    ARPlaneTracker.Stop();
+                    break;
+                }
             }
 
             NextHandler.HandleCommand(cmdHeader, argCount, argValues, argSizes);
@@ -122,10 +144,6 @@ namespace Unity.PolySpatial.XR.Internals
         [CommandHandlerCreationCallback(stage: CommandHandlerGraph.Stage.NetworkAppHost)]
         static IPolySpatialChainableCommandHandler Create(CommandHandlerGraph.HandlerCreationContext context)
         {
-            // The Subsystem will only be registered if the PolySpatialRuntime is enabled
-            if (!PolySpatialRuntime.Enabled)
-                return null;
-
             return new XRLocalCommandHandler();
         }
     }

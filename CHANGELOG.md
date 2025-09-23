@@ -7,6 +7,14 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [2.4.2] - 2025-09-23
+
+### Added
+- XR Input System tracking for XR devices that are being remotely driven from a Play To Device host to the simulated application.
+
+### Fixed
+- Prevent random native crash in PolySpatialXRSubsystem_AddOrUpdateMesh.  We could receive XrMesh updates while exiting play mode and if they came in at just the right time it could crash the editor.  We now block processing XrMeshes while exiting play which should prevent this crash.
+
 ## [2.3.1] - 2025-05-12
 
 ## [2.2.4] - 2025-03-05
@@ -297,4 +305,3 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Initial PolySpatial XR Extensions package.
-

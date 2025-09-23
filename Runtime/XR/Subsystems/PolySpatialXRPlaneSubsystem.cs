@@ -63,6 +63,8 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
             HashSet<TrackableId> m_RemovedPlanes = new(k_InitialPlanesCapacity);
             Dictionary<TrackableId, DiscoveredPlane> m_AllPlanes = new();
 
+            private PolySpatialHostID m_HostID;
+
             public override void Destroy()
             {
                 CleanUp();
@@ -75,6 +77,8 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
 
             public void InitializeClient(PolySpatialHostID hostID)
             {
+                m_HostID = hostID;
+
                 Logging.Log(LogCategory.XR, $"Plane Subsystem has initialized client with hostID: {hostID}");
             }
 
@@ -93,7 +97,7 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
                 if (!m_RemovedPlanes.Contains(plane.trackableId))
                 {
                     // If the plane added hasn't been processed yet, update the added values with these values
-                    if (m_AddedPlanes.ContainsKey(plane.trackableId))
+                    if (!m_AllPlanes.ContainsKey(plane.trackableId))
                     {
                         m_UpdatedPlanes.Remove(plane.trackableId);
                         m_AddedPlanes[plane.trackableId] = plane;
@@ -166,7 +170,6 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
                             removed[i] = planeId;
                             m_AllPlanes.Remove(planeId);
                         }
-
                         m_RemovedPlanes.Clear();
                     }
                 }
@@ -174,12 +177,19 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
                 return changes;
             }
 
+
             public override void Start()
             {
+                // Notify P2D Host
+                if (PolySpatialCore.HasInstance)
+                    PolySpatialCore.UnitySimulation?.NextHandler?.Command(PolySpatialCommand.XRPlaneSubsystemStart);
             }
 
             public override void Stop()
             {
+                // Notify P2D Host
+                if (PolySpatialCore.HasInstance)
+                    PolySpatialCore.UnitySimulation?.NextHandler?.Command(PolySpatialCommand.XRPlaneSubsystemStop);
                 CleanUp();
             }
 
