@@ -26,7 +26,7 @@ namespace Unity.PolySpatial.XR.Internals
         ARPlaneManager m_PlaneManager;
 
         // Track which planes have been sent through GetChanges
-        HashSet<TrackableID> m_SentPlanes = new();
+        HashSet<PolySpatialXRTrackableID> m_SentPlanes = new();
 
         // This is invoked each frame on `Update` from ARPlaneManager
         void OnTrackablesChanged(ARTrackablesChangedEventArgs<ARPlane> planeChanges)
@@ -73,7 +73,7 @@ namespace Unity.PolySpatial.XR.Internals
         // The Sim's XRPlaneSybsystem will notify us it wants to Stop tracking Planes here.
         internal void Stop()
         {
-            EndConnection();
+            EndSession();
         }
 
         internal void SetHostID(PolySpatialHostID hostID)
@@ -83,7 +83,7 @@ namespace Unity.PolySpatial.XR.Internals
 
         internal void InitializeARPlanes()
         {
-            var planeManagers = UnityObject.FindObjectsByType<ARPlaneManager>(FindObjectsSortMode.None);
+            var planeManagers = ObjectExtensions.FindObjectsByType<ARPlaneManager>();
 
             if (planeManagers.Length == 0)
                 return;
@@ -123,7 +123,7 @@ namespace Unity.PolySpatial.XR.Internals
             m_HostConnected = true;
         }
 
-        internal void EndConnection()
+        internal void EndSession()
         {
             m_SentPlanes.Clear();
             m_HostConnected = false;
@@ -156,7 +156,7 @@ namespace Unity.PolySpatial.XR.Internals
 
             foreach (var plane in updated)
             {
-                var trackableID = new TrackableID()
+                var trackableID = new PolySpatialXRTrackableID()
                 {
                     subId1 = plane.trackableId.subId1,
                     subId2 = plane.trackableId.subId2

@@ -165,9 +165,9 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
             s_AllVerticesInstances.Add(m_Vertices);
         }
 
-        static TrackableId ToTrackableId(TrackableID? assetId)
+        static TrackableId ToTrackableId(PolySpatialXRTrackableID? trackableId)
         {
-            return assetId == null ? TrackableId.invalidId : new TrackableId((ulong)assetId?.subId1, (ulong)assetId?.subId2);
+            return trackableId == null ? TrackableId.invalidId : new TrackableId(trackableId.Value.subId1, trackableId.Value.subId2);
         }
 
         internal DiscoveredPlane(PolySpatialARPlane arPlaneInfo)

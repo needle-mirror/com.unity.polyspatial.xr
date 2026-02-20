@@ -43,7 +43,7 @@ namespace Unity.PolySpatial.XR.Internals
             }
         }
 
-        internal void EndConnection()
+        internal void EndSession()
         {
             Dispose();
         }

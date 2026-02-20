@@ -92,16 +92,16 @@ namespace Unity.PolySpatial.XR.Internals
         private void OnAppHostConnectionError(ErrorCode errorcode, string errormessage)
         {
 #if UNITY_EDITOR || ENABLE_XR_INPUT_REMOTING
-            PolySpatialXrInputTracker.Instance?.EndConnection();
+            PolySpatialXrInputTracker.Instance?.EndSession();
 #endif
             if (m_ARSessionData == null)
                 return;
 
-            m_ARSessionData.m_ARPlaneTracker.EndConnection();
-            m_ARSessionData.m_XRHandTracker.EndConnection();
-            m_ARSessionData.m_XRImageTracker.EndConnection();
-            m_ARSessionData.m_XRMeshTracker.EndConnection();
-            PolySpatialXRHeadTracker.EndConnection();
+            m_ARSessionData.m_ARPlaneTracker.EndSession();
+            m_ARSessionData.m_XRHandTracker.EndSession();
+            m_ARSessionData.m_XRImageTracker.EndSession();
+            m_ARSessionData.m_XRMeshTracker.EndSession();
+            PolySpatialXRHeadTracker.EndSession();
         }
 
         /// <summary>

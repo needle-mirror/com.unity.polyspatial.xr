@@ -1,14 +1,12 @@
 using FlatSharp.Runtime.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Tracing;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.PolySpatial.InputDevices;
 using Unity.PolySpatial.Internals;
 using Unity.PolySpatial.XR.Internals.Subsystems;
 using UnityEngine;
-using UnityEngine.InputSystem.Utilities;
 using UnityEngine.Pool;
 
 namespace Unity.PolySpatial.XR.Internals
@@ -158,7 +156,7 @@ namespace Unity.PolySpatial.XR.Internals
                     Debug.Assert(argCount == 2);
 
                     var length = argSizes[1] / UnsafeUtility.SizeOf<bool>();
-                    var updatedHandLayout = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<bool>(argValues[1], length, Allocator.None);
+                    var updatedHandLayout = PolySpatialUtils.GetTempNativeArrayForBuffer<bool>(argValues[1], length);
 
                     UpdateHandLayout(updatedHandLayout);
                     break;
@@ -188,8 +186,9 @@ namespace Unity.PolySpatial.XR.Internals
                 // InputCommandCategory
                 case PolySpatialHostCommand.InputEvent:
                 {
-                    PolySpatialArgs.ExtractInputEventArgs(argCount, argValues, argSizes, out var type, out var hostId, out var eventCount, out var events);
-                    OnInputEvent(*type, *hostId, eventCount, events);
+                    PolySpatialArgs.ExtractInputEventArgs(argCount, argValues, argSizes,
+                        out var type, out var hostId, out var eventCount, out var events, out var stride);
+                    OnInputEvent(*type, *hostId, eventCount, events, stride);
                     break;
                 }
             }
@@ -197,11 +196,16 @@ namespace Unity.PolySpatial.XR.Internals
             NextHostHandler.HandleHostCommand(cmdHeader, argCount, argValues, argSizes);
         }
 
-        static unsafe void OnInputEvent(PolySpatialInputType type, PolySpatialHostID hostId, int eventCount, void* eventsPtr)
+        static unsafe void OnInputEvent(PolySpatialInputType type, PolySpatialHostID hostId, int eventCount, void* eventsPtr, int stride)
         {
             switch (type)
             {
                 case PolySpatialInputType.HeadPose:
+                    // If we are tracking an HMD, we don't need to process head pose events.
+#if UNITY_EDITOR || ENABLE_XR_INPUT_REMOTING
+                    if (PolySpatialXrInputTracker.Instance != null && PolySpatialXrInputTracker.Instance.IsTrackingHmd)
+                        return;
+#endif
                     var poseEvents = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<PolySpatialHeadPoseEvent>(
                         eventsPtr,
                         eventCount,
@@ -360,8 +364,8 @@ namespace Unity.PolySpatial.XR.Internals
             PolySpatialXRDisplaySubsystemProcessor.SetData(displayData, rawData);
         }
 
-        [HostCommandHandlerCreationCallback(stage: CommandHandlerGraph.Stage.HostConnectionManager)]
-        internal static IPolySpatialChainableHostCommandHandler Create(CommandHandlerGraph.HandlerCreationContext context)
+        [CommandHandlerCreationCallback(stage: CommandHandlerGraph.Stage.HostConnectionManager)]
+        static XRHostCommandHandler Create(CommandHandlerGraph.HandlerCreationContext context)
         {
             return new XRHostCommandHandler();
         }

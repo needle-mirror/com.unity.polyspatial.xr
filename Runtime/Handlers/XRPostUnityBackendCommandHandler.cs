@@ -76,7 +76,7 @@ namespace Unity.PolySpatial.XR.Internals
         }
 
         [CommandHandlerCreationCallback(stage: CommandHandlerGraph.Stage.PostLocalBackend)]
-        internal static IPolySpatialChainableCommandHandler Create(CommandHandlerGraph.HandlerCreationContext context)
+        static XRPostUnityBackendCommandHandler Create(CommandHandlerGraph.HandlerCreationContext context)
         {
             if (context.HasNetworkAppHost && context.CommandHandlerGraph.LocalBackend is PolySpatialUnityBackend unityBackend)
             {

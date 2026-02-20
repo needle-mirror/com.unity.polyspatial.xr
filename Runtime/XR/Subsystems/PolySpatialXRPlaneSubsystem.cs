@@ -181,15 +181,15 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
             public override void Start()
             {
                 // Notify P2D Host
-                if (PolySpatialCore.HasInstance)
-                    PolySpatialCore.UnitySimulation?.NextHandler?.Command(PolySpatialCommand.XRPlaneSubsystemStart);
+                if (PolySpatialRuntime.HasLocalSimulation)
+                    PolySpatialCore.UnitySimulation.NextHandler.Command(PolySpatialCommand.XRPlaneSubsystemStart);
             }
 
             public override void Stop()
             {
                 // Notify P2D Host
-                if (PolySpatialCore.HasInstance)
-                    PolySpatialCore.UnitySimulation?.NextHandler?.Command(PolySpatialCommand.XRPlaneSubsystemStop);
+                if (PolySpatialRuntime.HasLocalSimulation)
+                    PolySpatialCore.UnitySimulation.NextHandler.Command(PolySpatialCommand.XRPlaneSubsystemStop);
                 CleanUp();
             }
 

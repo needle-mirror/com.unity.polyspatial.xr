@@ -103,7 +103,7 @@ namespace Unity.PolySpatial.XR.Internals
         {
             m_PolySpatialHostID = hostID;
 
-            var imageTrackerManagers = UnityObject.FindObjectsByType<ARTrackedImageManager>(FindObjectsSortMode.None);
+            var imageTrackerManagers = ObjectExtensions.FindObjectsByType<ARTrackedImageManager>();
 
             if (imageTrackerManagers.Length == 0)
                 return;
@@ -124,7 +124,7 @@ namespace Unity.PolySpatial.XR.Internals
             m_HostConnected = true;
         }
 
-        internal void EndConnection()
+        internal void EndSession()
         {
             m_HostConnected = false;
             if (m_TrackedImageManager != null)

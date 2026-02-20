@@ -2,6 +2,8 @@ using System;
 using Unity.PolySpatial.Internals;
 using UnityEngine;
 using FlatSharp.Runtime.Extensions;
+using Unity.PolySpatial.Input;
+using UnityObject = UnityEngine.Object;
 
 namespace Unity.PolySpatial.XR.Internals
 {
@@ -29,6 +31,8 @@ namespace Unity.PolySpatial.XR.Internals
 #if UNITY_EDITOR || ENABLE_XR_INPUT_REMOTING
         PolySpatialXrInputTracker XRInputTracker => Core.m_ARSessionData.m_XRInputTracker;
 #endif
+
+        GameObject m_DisabledXRRig;
 
         [NonSerialized]
         PolySpatialXRCore m_Core;
@@ -62,9 +66,30 @@ namespace Unity.PolySpatial.XR.Internals
 
                     break;
                 }
-                case PolySpatialCommand.BeginConnection:
+                case PolySpatialCommand.BeginSession:
                 {
-                    PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out PolySpatialInstanceID* id, out Span<byte> _);
+                    PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out PolySpatialInstanceID* id, out Span<byte> data);
+                    fixed (byte* ptr = data)
+                    {
+                        var session = PolySpatialSessionData.Serializer.Parse(data.Length, ptr);
+                        var xrSettings = session.xrSettings;
+                        if (xrSettings != null)
+                        {
+                            Logging.Log(LogCategory.Input, $"Has XR in connected simulation.");
+                            if (xrSettings.hasXRRig)
+                            {
+                                var xrRigHelper = UnityObject.FindAnyObjectByType<XRRigHelper>();
+                                if (xrRigHelper)
+                                {
+                                    Logging.Log(LogCategory.Input, $"Disabling host rig controls as sim wil render it's own.");
+                                    // If the simulation has a rig, we need to disable rendering of our
+                                    // controllers to remove visual duplicates.
+                                    xrRigHelper.DisableObjects();
+                                }
+                            }
+                        }
+                    }
+                    XRDisplayTracker?.StartSession(id->hostId);
 
                     ARPlaneTracker.SetHostID(id->hostId);
 
@@ -76,35 +101,38 @@ namespace Unity.PolySpatial.XR.Internals
                     XRMeshTracker.InitializeXRMeshes(id->hostId);
 
                     PolySpatialXRHeadTracker.StartConnection(id->hostId);
-
                     break;
                 }
-                case PolySpatialCommand.EndConnection:
+                case PolySpatialCommand.EndSession:
                 {
+                    var xrRigHelper = UnityObject.FindAnyObjectByType<XRRigHelper>();
+                    if (xrRigHelper)
+                    {
+                        Logging.Log(LogCategory.Input, $"Re-enabling host rig controls.");
+                        // If there is a rig, we need to re-enable the controllers that
+                        // we disabled when the session started.
+                        xrRigHelper.ResetObjects();
+                    }
+
                     if (Core.m_ARSessionData == null)
                         break;
 
-                    ARPlaneTracker.EndConnection();
+                    ARPlaneTracker.EndSession();
 
-                    XRHandTracker.EndConnection();
+                    XRHandTracker.EndSession();
 
-                    ARImageTracker.EndConnection();
+                    ARImageTracker.EndSession();
 
-                    XRMeshTracker.EndConnection();
+                    XRMeshTracker.EndSession();
 
-                    PolySpatialXRHeadTracker.EndConnection();
+                    PolySpatialXRHeadTracker.EndSession();
 
 #if UNITY_EDITOR || ENABLE_XR_INPUT_REMOTING
-                    XRInputTracker.EndConnection();
+                    XRInputTracker.EndSession();
 #endif
                     break;
                 }
-                case PolySpatialCommand.BeginSession:
-                {
-                    PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out PolySpatialInstanceID* id, out Span<byte> _);
-                    XRDisplayTracker?.StartSession(id->hostId);
-                    break;
-                }
+
                 case PolySpatialCommand.CreateOrUpdateReferenceImageLibrary:
                 {
                     PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out Span<byte> data);
@@ -142,7 +170,7 @@ namespace Unity.PolySpatial.XR.Internals
         }
 
         [CommandHandlerCreationCallback(stage: CommandHandlerGraph.Stage.NetworkAppHost)]
-        static IPolySpatialChainableCommandHandler Create(CommandHandlerGraph.HandlerCreationContext context)
+        static XRLocalCommandHandler Create(CommandHandlerGraph.HandlerCreationContext context)
         {
             return new XRLocalCommandHandler();
         }

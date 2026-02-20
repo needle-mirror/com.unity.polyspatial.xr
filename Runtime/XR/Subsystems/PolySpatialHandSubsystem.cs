@@ -61,6 +61,7 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
 
             public override void Destroy()
             {
+                m_UpdatedHandLayout.Dispose();
                 m_HandData.Dispose();
             }
 
@@ -97,7 +98,9 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
 
             internal void UpdateHandLayout(NativeArray<bool> updatedHandLayout)
             {
-                m_UpdatedHandLayout = updatedHandLayout;
+                if (m_UpdatedHandLayout.IsCreated)
+                    m_UpdatedHandLayout.Dispose();
+                m_UpdatedHandLayout = new NativeArray<bool>(updatedHandLayout, Allocator.Persistent);
                 m_HandLayoutUpdated = true;
             }
 

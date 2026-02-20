@@ -30,7 +30,7 @@ namespace Unity.PolySpatial.XR.Internals
             s_Connected = true;
         }
 
-        internal static void EndConnection()
+        internal static void EndSession()
         {
             s_Connected = false;
         }

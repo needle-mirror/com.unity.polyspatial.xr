@@ -1,14 +1,27 @@
 #if UNITY_EDITOR || ENABLE_XR_INPUT_REMOTING
+
+// ENABLE_VR is not defined on Game Core but the assembly is available with limited features when the XR module is enabled.
+#if UNITY_INPUT_SYSTEM_ENABLE_XR && (ENABLE_VR || UNITY_GAMECORE) && !UNITY_FORCE_INPUTSYSTEM_XR_OFF
+#define USE_XR_INPUT
+#endif
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Unity.PolySpatial.Input;
 using Unity.PolySpatial.Input.RemoteInputDevices;
 using Unity.PolySpatial.InputDevices;
+using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using UnityEngine.Assertions;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Layouts;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.LowLevel;
+using UnityEngine.InputSystem.XR;
 using UnityEngine.InputSystem.Utilities;
 using UnityEngine.XR;
 using InputDevice = UnityEngine.InputSystem.InputDevice;
@@ -24,11 +37,56 @@ namespace Unity.PolySpatial.XR.Internals
     internal class PolySpatialXrInputTracker : IDisposable
     {
         internal const string k_LegacyNamePrefix = "PolySpatialLegacyRemote";
+        internal const string k_LegacyHmdName = k_LegacyNamePrefix + "HMD";
+        internal const string k_LegacyControllerName = k_LegacyNamePrefix + "Controller";
+
         const string k_FauxManufacturer = "Unity PolySpatial";
         const string k_FauxSerialNumber = "12345";
 
+#if UNITY_EDITOR
+        [InitializeOnLoad]
+#endif
+        static class RegisterLayout
+        {
+#if UNITY_EDITOR
+            static RegisterLayout()
+            {
+                RegisterLayouts();
+            }
+#endif
+
+            [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+            static void RegisterLayouts()
+            {
+#if USE_XR_INPUT
+                InputSystem.RegisterLayout<XRHMD>(
+                    matches: new InputDeviceMatcher()
+                        .WithInterface(XRUtilities.InterfaceMatchAnyVersion)
+                        .WithProduct("^" + PolySpatialXrInputTracker.k_LegacyHmdName)
+                );
+
+                InputSystem.RegisterLayout<XRController>(
+                    matches: new InputDeviceMatcher()
+                        .WithInterface(XRUtilities.InterfaceMatchAnyVersion)
+                        .WithProduct("^" + PolySpatialXrInputTracker.k_LegacyControllerName)
+                );
+#endif
+            }
+        }
+
         bool m_CanMapDevices = true;
-        internal bool CanMapDevices => m_CanMapDevices;
+        internal bool CanMapDevices
+        {
+            get
+            {
+                return m_CanMapDevices;
+            }
+
+            set
+            {
+                m_CanMapDevices = value;
+            }
+        }
 
         enum XRDeviceType
         {
@@ -37,14 +95,37 @@ namespace Unity.PolySpatial.XR.Internals
             Hmd,
         }
 
+        /// <summary>
+        /// Holds data correctly map an incoming remote device
+        /// to an XR Input System device and the instantiated
+        /// Input System device for the XR device.
+        /// </summary>
         struct XRMappedDevice
         {
+            // The name of the input device we are mirroring into the XR Input System.
+            // The device id of this device is used as the key for the mapping to an
+            // instance of this struct.
+            public string inputSystemDeviceName;
+
+            // The device id that the XR Input System assigned when we
+            // created the device.
             public uint xrInputDeviceId;
-            public XRDeviceType deviceType;
+
+            // The type of the XR device created. Needed to make sure we call
+            // the right mapping functions.
+            public XRDeviceType xrDeviceType;
+
+            // The name of the device we used when we created id with the
+            // XR Input System. We use this to do a best effort search for
+            // the Input System device that was created for the XR Device.
+            public string inputSystemMappedXrDeviceName;
+
+            // The device id of the Input System device that was created
+            // by XR Input for the XR Input System device we created.
+            public int inputSystemMappedXrDeviceId;
         }
 
         Dictionary<uint, XRMappedDevice> m_MappedDevices = new Dictionary<uint, XRMappedDevice>();
-        HashSet<uint> m_RemovedDevices = new();
 
         bool m_Disposed = false;
 
@@ -75,6 +156,15 @@ namespace Unity.PolySpatial.XR.Internals
             xrInputDeviceId = UInt32.MaxValue,
         };
 
+        internal bool IsTrackingHmd
+        {
+            get
+            {
+                return m_MappedDevices.Select(kvp => kvp.Value.xrDeviceType == XRDeviceType.Hmd)
+                    .Any();
+            }
+        }
+
         // These are going to represent the single, currently active devices
         // we will be updating. Right now we're just going to set them up to
         // reflect the first instance of each device type that we get. In the
@@ -91,7 +181,7 @@ namespace Unity.PolySpatial.XR.Internals
                 return false;
 
             var characteristics = InputDeviceCharacteristics.TrackedDevice | InputDeviceCharacteristics.HeadMounted;
-            var deviceName = $"{k_LegacyNamePrefix}HMD{mappedDevice.Value.hostDeviceName}:{mappedDevice.Value.hostDeviceId}";
+            var deviceName = $"{k_LegacyNamePrefix}HMD{mappedDevice.Value.hostDeviceName}{mappedDevice.Value.hostDeviceId}";
             var xrInputDeviceId = XrInputSystemNativeApi.AddHmd(
                 characteristics,
                 deviceName,
@@ -107,8 +197,11 @@ namespace Unity.PolySpatial.XR.Internals
 
             m_MappedDevices[deviceId] = new XRMappedDevice()
             {
+                inputSystemDeviceName = device.name,
                 xrInputDeviceId = xrInputDeviceId,
-                deviceType =  XRDeviceType.Hmd,
+                xrDeviceType =  XRDeviceType.Hmd,
+                inputSystemMappedXrDeviceName = deviceName,
+                inputSystemMappedXrDeviceId = 0
             };
 
             return true;
@@ -123,7 +216,7 @@ namespace Unity.PolySpatial.XR.Internals
 
             var characteristics = InputDeviceCharacteristics.TrackedDevice | InputDeviceCharacteristics.Controller | InputDeviceCharacteristics.HeldInHand;
             characteristics |= leftHand ? InputDeviceCharacteristics.Left : InputDeviceCharacteristics.Right;
-            var deviceName = $"{k_LegacyNamePrefix}Controller{mappedDevice.Value.hostDeviceName}:{mappedDevice.Value.hostDeviceId}";
+            var deviceName = $"{k_LegacyNamePrefix}Controller{mappedDevice.Value.hostDeviceName}{mappedDevice.Value.hostDeviceId}";
             var xrInputDeviceId = XrInputSystemNativeApi.AddController(
                 characteristics,
                 deviceName,
@@ -139,8 +232,11 @@ namespace Unity.PolySpatial.XR.Internals
 
             m_MappedDevices[deviceId] = new XRMappedDevice()
             {
+                inputSystemDeviceName = device.name,
                 xrInputDeviceId = xrInputDeviceId,
-                deviceType = leftHand ? XRDeviceType.LeftController : XRDeviceType.RightController,
+                xrDeviceType = leftHand ? XRDeviceType.LeftController : XRDeviceType.RightController,
+                inputSystemMappedXrDeviceName = deviceName,
+                inputSystemMappedXrDeviceId = 0
             };
 
             return true;
@@ -151,7 +247,7 @@ namespace Unity.PolySpatial.XR.Internals
         {
             foreach (var kvp in m_MappedDevices)
             {
-                if (kvp.Value.deviceType == deviceType)
+                if (kvp.Value.xrDeviceType == deviceType)
                 {
                     return new ActiveMappedXRDevice()
                     {
@@ -169,29 +265,51 @@ namespace Unity.PolySpatial.XR.Internals
             if (m_MappedDevices.TryGetValue(deviceId, out var mappedDevice))
             {
                 m_MappedDevices.Remove(deviceId);
+
+                // TODO (PLAT-15241): There is a bug in the XR input system where they only
+                // provide a means for disconnecting a device, but not removing it.
+                // This means that disconnected device instances will remain in the
+                // Input System, with no options available to do anything about them.
+                if (mappedDevice.inputSystemMappedXrDeviceId != 0)
+                {
+                    Logging.Log(LogCategory.Diagnostics, $"DEVICE EVENT Removing ISX Device {mappedDevice.inputSystemDeviceName}:{mappedDevice.inputSystemMappedXrDeviceId} for device {deviceId}");
+                    var d = InputSystem.GetDeviceById(mappedDevice.inputSystemMappedXrDeviceId);
+                    if (d != null)
+                        InputSystem.RemoveDevice(d);
+                }
+
                 Logging.Log(LogCategory.Diagnostics, $"DEVICE EVENT Removing controller {mappedDevice.xrInputDeviceId} for device {deviceId}");
-                switch (mappedDevice.deviceType)
+                switch (mappedDevice.xrDeviceType)
                 {
                     case XRDeviceType.LeftController:
                     case XRDeviceType.RightController:
                     {
                         if (m_ActiveLeftController.xrInputDeviceId == mappedDevice.xrInputDeviceId)
-                            m_ActiveLeftController = FindFallbackDevice(mappedDevice.deviceType);
+                            m_ActiveLeftController = FindFallbackDevice(mappedDevice.xrDeviceType);
                         if (m_ActiveRightController.xrInputDeviceId == mappedDevice.xrInputDeviceId)
-                            m_ActiveRightController = FindFallbackDevice(mappedDevice.deviceType);
+                            m_ActiveRightController = FindFallbackDevice(mappedDevice.xrDeviceType);
                         XrInputSystemNativeApi.RemoveController(mappedDevice.xrInputDeviceId);
                         break;
                     }
                     case XRDeviceType.Hmd:
                     {
                         if (m_ActiveHmd.xrInputDeviceId == mappedDevice.xrInputDeviceId)
-                            m_ActiveHmd = FindFallbackDevice(mappedDevice.deviceType);
+                            m_ActiveHmd = FindFallbackDevice(mappedDevice.xrDeviceType);
                         XrInputSystemNativeApi.RemoveHmd(mappedDevice.xrInputDeviceId);
                         break;
                     }
                 }
-
             }
+        }
+
+        internal uint XRMappedDeviceIdForDeviceId(int deviceId)
+        {
+            if (m_MappedDevices.TryGetValue((uint)deviceId, out var mappedDevice))
+            {
+                return mappedDevice.xrInputDeviceId;
+            }
+
+            return UInt32.MaxValue;
         }
 
         void Cleanup()
@@ -201,7 +319,6 @@ namespace Unity.PolySpatial.XR.Internals
                 RemoveDeviceFromMapping(key);
             }
 
-            m_RemovedDevices.Clear();
             m_MappedDevices.Clear();
 
             // TODO (PLAT-15241): Manually drain the input system of
@@ -215,8 +332,6 @@ namespace Unity.PolySpatial.XR.Internals
                     InputSystem.RemoveDevice(device);
                 }
             }
-
-            m_RemovedDevices.Clear();
         }
 
         /// <summary>
@@ -224,7 +339,7 @@ namespace Unity.PolySpatial.XR.Internals
         /// PolySpatial XR or not. This singleton instance maintains that
         /// one tracker for use.
         /// </summary>
-        static Lazy<PolySpatialXrInputTracker> s_Instance = new(() =>
+        static readonly Lazy<PolySpatialXrInputTracker> s_Instance = new(() =>
         {
             return new PolySpatialXrInputTracker();
         });
@@ -234,8 +349,8 @@ namespace Unity.PolySpatial.XR.Internals
         internal void Initialize()
         {
             Assert.IsNotNull(PolySpatialInputDeviceManager.Instance);
-            m_CanMapDevices = XRInputProvider.EnsureInitialized();
-            if (!m_CanMapDevices)
+            CanMapDevices = XRInputProvider.EnsureInitialized();
+            if (!CanMapDevices)
             {
                 Logging.LogWarning(LogCategory.Diagnostics, "PolySpatialXrInputTracker cannot map devices because XRInputProvider is not initialized.");
                 return;
@@ -245,31 +360,13 @@ namespace Unity.PolySpatial.XR.Internals
             PolySpatialInputDeviceManager.Instance.WillRemoveInputDevice += OnWillRemoveInputDevice;
             PolySpatialInputDeviceManager.Instance.ProcessEvent += OnProcessEvent;
 
-            PolySpatialInputDeviceManager.Instance.IterateMappedDevices(mappedDevice =>
+            PolySpatialInputDeviceManager.Instance.IterateMappedDevices((key, mappedDevice) =>
             {
-                OnDidAddInputDevice(mappedDevice);
+                OnDidAddInputDevice(key, mappedDevice);
             });
         }
 
-        void OnStateChanged(InputDevice device, InputEventPtr eventPtr)
-        {
-            if (m_MappedDevices.TryGetValue((uint)device.deviceId, out var mappedDevice))
-            {
-                OnProcessEvent(eventPtr, device);
-            }
-        }
-
-        internal uint XRMappedDeviceIdForDeviceId(int deviceId)
-        {
-            if (m_MappedDevices.TryGetValue((uint)deviceId, out var mappedDevice))
-            {
-               return mappedDevice.xrInputDeviceId;
-            }
-
-            return UInt32.MaxValue;
-        }
-
-        void OnDidAddInputDevice(PolySpatialInputDeviceManager.MappedDevice mappedDevice)
+        void OnDidAddInputDevice(PolySpatialRemoteInputUtils.RemoteDeviceKey _, PolySpatialInputDeviceManager.MappedDevice mappedDevice)
         {
             if (mappedDevice.inputDevice == null)
                 return;
@@ -313,8 +410,6 @@ namespace Unity.PolySpatial.XR.Internals
                     m_ActiveHmd.xrInputDeviceId = m_MappedDevices[deviceId].xrInputDeviceId;
                 }
             }
-
-            m_RemovedDevices.Remove((uint)deviceId);
         }
 
         void OnWillRemoveInputDevice(PolySpatialInputDeviceManager.MappedDevice mappedDevice)
@@ -322,7 +417,6 @@ namespace Unity.PolySpatial.XR.Internals
             if (mappedDevice.inputDevice == null)
                 return;
             RemoveDeviceFromMapping((uint)mappedDevice.inputDevice.deviceId);
-            m_RemovedDevices.Add((uint)mappedDevice.inputDevice.deviceId);
         }
 
         void OnProcessEvent(PolySpatialInputDeviceManager.MappedDevice mappedDevice, InputEventPtr eventPtr)
@@ -345,16 +439,42 @@ namespace Unity.PolySpatial.XR.Internals
             if (xrInputDeviceId == UInt32.MaxValue)
                 return;
 
+            // Because of the delay between creating the XR device, and when
+            // that is mirrored into the Input System, there is no way to
+            // get this information at the point of creation. So, here we do
+            // a best effort lookup for that device.
+            if (xrMappedDevice.inputSystemMappedXrDeviceId == 0)
+            {
+                foreach (var d in InputSystem.devices)
+                {
+                    if (d.name.StartsWith(xrMappedDevice.inputSystemMappedXrDeviceName))
+                    {
+                        xrMappedDevice.inputSystemMappedXrDeviceId = d.deviceId;
+                        m_MappedDevices[deviceId] = xrMappedDevice;
+                        break;
+                    }
+                }
+            }
+
+            var isxDevice = InputSystem.GetDeviceById(xrMappedDevice.inputSystemMappedXrDeviceId);
+            if (isxDevice != null && !isxDevice.enabled)
+            {
+                // The ISX device for the XR Input device that was created is not
+                // enabled by default. This can cause issues with tracking, so we
+                // manually enable it here.
+                InputSystem.EnableDevice(isxDevice);
+            }
+
             // Only update the input system and XR Node states for the currently active devices.
             // This is to ensure that we don't have multiples of XR Node States that confuse
             // Tracked Pose Driver.
-            if (((xrMappedDevice.deviceType == XRDeviceType.LeftController && m_ActiveLeftController.remoteDeviceId == deviceId)
-                 || (xrMappedDevice.deviceType == XRDeviceType.RightController && m_ActiveRightController.remoteDeviceId == deviceId))
+            if (((xrMappedDevice.xrDeviceType == XRDeviceType.LeftController && m_ActiveLeftController.remoteDeviceId == deviceId)
+                 || (xrMappedDevice.xrDeviceType == XRDeviceType.RightController && m_ActiveRightController.remoteDeviceId == deviceId))
                 && device is PolySpatialRemoteControllerDevice controller)
             {
                 UpdateXrControllerState(xrInputDeviceId, controller, eventPtr);
             }
-            else if (xrMappedDevice.deviceType == XRDeviceType.Hmd
+            else if (xrMappedDevice.xrDeviceType == XRDeviceType.Hmd
                      && m_ActiveHmd.remoteDeviceId == deviceId
                      && device is PolySpatialRemoteHmdDevice remoteHMDDevice)
             {
@@ -423,13 +543,15 @@ namespace Unity.PolySpatial.XR.Internals
         /// <param name="eventPtr">An event ptr to an event from that device that we can use to update data from.</param>
         static void UpdateXrControllerState(uint xrInputDeviceId, PolySpatialRemoteControllerDevice remoteControllerDevice, InputEventPtr eventPtr)
         {
+            // As long as we have a device, we need to ensure that it stays marked as tracked.
             if (HasControlChanged(remoteControllerDevice.isTracked, eventPtr))
-                XrInputSystemNativeApi.SetControllerIsTracked(xrInputDeviceId, true);//IsControlPressed(controller.isTracked, eventPtr));
+                XrInputSystemNativeApi.SetControllerIsTracked(xrInputDeviceId, true);
             // Tracking State is what is used to tell an interested party that this control
             // is tracking one or more states. So, if your updates are missing position, rotation or some other state change
             // when using XRNodeState, you should ensure that the trackingState is updated.
+            // As long as we have a device, we need to ensure that it stays marked as tracking Position and Rotation.
             if (HasControlChanged(remoteControllerDevice.trackingState, eventPtr))
-                XrInputSystemNativeApi.SetControllerTrackingState(xrInputDeviceId, 3);//(uint)controller.trackingState.ReadValueFromEvent(eventPtr));
+                XrInputSystemNativeApi.SetControllerTrackingState(xrInputDeviceId, 3);
             if (HasControlChanged(remoteControllerDevice.devicePosition, eventPtr))
                 XrInputSystemNativeApi.SetControllerPosition(xrInputDeviceId, remoteControllerDevice.devicePosition.ReadValueFromEvent(eventPtr));
             if (HasControlChanged(remoteControllerDevice.deviceRotation, eventPtr))
@@ -453,13 +575,13 @@ namespace Unity.PolySpatial.XR.Internals
             if (HasControlChanged(remoteControllerDevice.menuButton, eventPtr))
                 XrInputSystemNativeApi.SetMenuButton(xrInputDeviceId, IsControlPressed(remoteControllerDevice.menuButton, eventPtr));
             if (HasControlChanged(remoteControllerDevice.primary2DAxis, eventPtr))
-                XrInputSystemNativeApi.SetPrimary2D(xrInputDeviceId, remoteControllerDevice.primary2DAxis.value);
+                XrInputSystemNativeApi.SetPrimary2D(xrInputDeviceId, remoteControllerDevice.primary2DAxis.ReadValueFromEvent(eventPtr));
             if (HasControlChanged(remoteControllerDevice.primary2DAxisClick, eventPtr))
                 XrInputSystemNativeApi.SetPrimary2DClick(xrInputDeviceId, IsControlPressed(remoteControllerDevice.primary2DAxisClick, eventPtr));
             if (HasControlChanged(remoteControllerDevice.primary2DAxisTouch, eventPtr))
                 XrInputSystemNativeApi.SetPrimary2DTouch(xrInputDeviceId, IsControlPressed(remoteControllerDevice.primary2DAxisTouch, eventPtr));
             if (HasControlChanged(remoteControllerDevice.secondary2DAxis, eventPtr))
-                XrInputSystemNativeApi.SetSecondary2D(xrInputDeviceId, remoteControllerDevice.secondary2DAxis.value);
+                XrInputSystemNativeApi.SetSecondary2D(xrInputDeviceId, remoteControllerDevice.secondary2DAxis.ReadValueFromEvent(eventPtr));
             if (HasControlChanged(remoteControllerDevice.secondary2DAxisClick, eventPtr))
                 XrInputSystemNativeApi.SetSecondary2DClick(xrInputDeviceId, IsControlPressed(remoteControllerDevice.secondary2DAxisClick, eventPtr));
             if (HasControlChanged(remoteControllerDevice.secondary2DAxisTouch, eventPtr))
@@ -475,7 +597,7 @@ namespace Unity.PolySpatial.XR.Internals
             Cleanup();
         }
 
-        internal void EndConnection()
+        internal void EndSession()
         {
             Cleanup();
         }

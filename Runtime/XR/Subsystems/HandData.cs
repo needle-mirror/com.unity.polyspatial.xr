@@ -1,9 +1,11 @@
 #if INCLUDE_UNITY_XR_HANDS
 
+using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
 using Unity.PolySpatial.Internals;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.XR.Hands;
 using UnityEngine.XR.Hands.ProviderImplementation;
 
@@ -125,6 +127,25 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
         {
             m_LeftHand.Dispose();
             m_RightHand.Dispose();
+
+            // TODO XRHB-99: Remove this section when hands team resolves XRHB-99
+            // XRHandProviderUtility.EnsureDevicesCreated is adding XRHandDevice's and not removing
+            // them when we exit play mode.
+            // I don't think the hands package was designed to make hands in the editor like we do.
+            // To avoid this, clean up these XRHandDevice's ourselves to avoid leaving extra sets of
+            // them around that can accumulate and cause confusion.
+            var devicesToRemove = new List<InputDevice>();
+            foreach (var device in InputSystem.devices)
+            {
+                if (device is XRHandDevice)
+                {
+                    devicesToRemove.Add(device);
+                }
+            }
+            foreach (var device in devicesToRemove)
+            {
+                InputSystem.RemoveDevice(device);
+            }
         }
     }
 }

@@ -19,8 +19,10 @@ namespace Unity.PolySpatial.XR.Internals
         {
             if (m_DisplaySubsystem == null)
             {
-                m_DisplaySubsystem =
-                    XRGeneralSettings.Instance?.Manager?.activeLoader?.GetLoadedSubsystem<XRDisplaySubsystem>();
+                var settings = XRGeneralSettings.Instance;
+                if (settings != null && settings.Manager != null && settings.Manager.activeLoader != null)
+                    m_DisplaySubsystem = settings.Manager.activeLoader.GetLoadedSubsystem<XRDisplaySubsystem>();
+
                 if (m_DisplaySubsystem == null)
                     return;
             }

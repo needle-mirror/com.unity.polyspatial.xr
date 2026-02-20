@@ -109,7 +109,7 @@ namespace Unity.PolySpatial.Shell.InputDevices
                     {
                         targetId = m_ColliderID,
                         volumeId = m_VolumeID,
-                        interactionId = rayInteractor.GetInstanceID(),
+                        interactionId = rayInteractor.GetEntityId().GetHashCode(),
                         phase = phase,
                         interactionPosition = worldPosition,
                         inputDevicePosition = rayInteractorTransform.position,
@@ -127,7 +127,7 @@ namespace Unity.PolySpatial.Shell.InputDevices
                     {
                         targetId = m_ColliderID,
                         volumeId = m_VolumeID,
-                        interactionId = nearFarInteractor.GetInstanceID(),
+                        interactionId = nearFarInteractor.GetEntityId().GetHashCode(),
                         phase = phase,
                         interactionPosition = rayProvider.rayEndPoint,
                         inputDevicePosition = nearFarInteractorTransform.position,
@@ -161,7 +161,7 @@ namespace Unity.PolySpatial.Shell.InputDevices
                     {
                         targetId = m_ColliderID,
                         volumeId = m_VolumeID,
-                        interactionId = pokeInteractor.GetInstanceID(),
+                        interactionId = pokeInteractor.GetEntityId().GetHashCode(),
                         phase = phase,
                         interactionPosition = pokeInteractor.pokeStateData.Value.pokeInteractionPoint,
                         inputDevicePosition = pokeInteractorTransform.position,

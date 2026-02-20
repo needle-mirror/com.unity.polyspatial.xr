@@ -97,7 +97,7 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
             public override RuntimeReferenceImageLibrary CreateRuntimeLibrary(XRReferenceImageLibrary serializedLibrary)
             {
                 // Do not try to send the image library if PolySpatial hasn't been initialized
-                if (PolySpatialCore.UnitySimulation != null)
+                if (PolySpatialRuntime.HasLocalSimulation)
                     SendReferenceImageLibrary(serializedLibrary);
 
                 return new PolySpatialXRImageDatabase(serializedLibrary);

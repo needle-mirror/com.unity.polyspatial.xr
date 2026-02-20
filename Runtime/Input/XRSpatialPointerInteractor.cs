@@ -99,7 +99,7 @@ namespace Unity.PolySpatial.XR.Input
 
         bool TryGetInteractable(long colliderId, out IXRInteractable interactable)
         {
-            var go = ObjectBridge.FindObjectFromInstanceID(colliderId) as GameObject;
+            var go = ObjectBridge.FindFromInstanceID<GameObject>(colliderId.ToEntityId());
             if (go == null)
             {
                 interactable = null;

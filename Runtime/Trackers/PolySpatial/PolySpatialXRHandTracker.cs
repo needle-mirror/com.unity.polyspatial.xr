@@ -262,7 +262,7 @@ namespace Unity.PolySpatial.XR.Internals
                 m_PolySpatialHostID);
         }
 
-        internal void EndConnection()
+        internal void EndSession()
         {
             Dispose();
         }

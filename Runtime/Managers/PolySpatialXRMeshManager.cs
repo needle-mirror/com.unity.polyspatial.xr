@@ -7,7 +7,6 @@ using UnityEngine;
 using UnityEngine.XR.ARSubsystems;
 using UnityEngine.XR.Management;
 using Unity.XR.CoreUtils;
-using UnityEngine.Serialization;
 using UnityEngine.XR;
 using LegacyMeshId = UnityEngine.XR.MeshId;
 
@@ -119,7 +118,7 @@ namespace Unity.PolySpatial.XR.Internals
                 })
             };
 
-            changeTracker.removedArray = new List<TrackableID>();
+            changeTracker.removedArray = new List<PolySpatialXRTrackableID>();
 
             meshesChanged?.Invoke(changeTracker);
         }
@@ -150,7 +149,7 @@ namespace Unity.PolySpatial.XR.Internals
                 list.Add(new PolySpatialXRMesh
                 {
                     changeState = PolySpatialMeshChangeState.Added,
-                    meshID = new TrackableID
+                    meshID = new PolySpatialXRTrackableID
                     {
                         subId1 = subId1,
                         subId2 = subId2
@@ -292,12 +291,12 @@ namespace Unity.PolySpatial.XR.Internals
                 })
             };
 
-            changeTracker.removedArray = new List<TrackableID>();
+            changeTracker.removedArray = new List<PolySpatialXRTrackableID>();
             foreach (var meshId in m_RemovedMeshIds)
             {
                 var meshIdString = meshId.ToString();
                 var (subId1, subId2) = ExtractSubIds(meshIdString);
-                changeTracker.removedArray.Add(new TrackableID
+                changeTracker.removedArray.Add(new PolySpatialXRTrackableID
                 {
                     subId1 = subId1,
                     subId2 = subId2
