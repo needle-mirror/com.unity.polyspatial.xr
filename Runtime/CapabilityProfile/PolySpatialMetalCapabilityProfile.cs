@@ -6,9 +6,6 @@ namespace Unity.PolySpatial.XR.Capabilities
     /// <summary>
     /// Class that represents a PolySpatial Metal capability profile.
     /// </summary>
-#if POLYSPATIAL_INTERNAL
-    [CreateAssetMenu(menuName = "PolySpatial/PolySpatialMetalCapabilityProfileTest")]
-#endif
     class PolySpatialMetalCapabilityProfile : CapabilityProfile, ICapabilityModifier
     {
         [SerializeField]

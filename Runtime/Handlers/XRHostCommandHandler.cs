@@ -1,3 +1,8 @@
+// ENABLE_VR is not defined on Game Core but the assembly is available with limited features when the XR module is enabled.
+#if UNITY_INPUT_SYSTEM_ENABLE_XR && (ENABLE_VR || UNITY_GAMECORE) && !UNITY_FORCE_INPUTSYSTEM_XR_OFF
+#define USE_XR_INPUT
+#endif
+
 using FlatSharp.Runtime.Extensions;
 using System;
 using System.Collections.Generic;
@@ -85,7 +90,7 @@ namespace Unity.PolySpatial.XR.Internals
 
         public void Dispose()
         {
-#if INCLUDE_UNITY_XR_HANDS
+#if USE_XR_INPUT && INCLUDE_UNITY_XR_HANDS
             DisposeHandSubsystems();
 #endif
         }
@@ -298,7 +303,7 @@ namespace Unity.PolySpatial.XR.Internals
             PolySpatialXRMeshSubsystemProcessor.instance?.ProcessMeshUpdates(meshData);
         }
 
-#if INCLUDE_UNITY_XR_HANDS
+#if USE_XR_INPUT && INCLUDE_UNITY_XR_HANDS
         List<PolySpatialHandSubsystem> m_HandSubsystems;
 
         void InitHandSubsystems()
@@ -321,7 +326,7 @@ namespace Unity.PolySpatial.XR.Internals
 
         void OnXRHandTrackingEvent(PolySpatialHandID handId, PolySpatialXRHandTrackingEvent evt, PolySpatialHostID hostID)
         {
-#if INCLUDE_UNITY_XR_HANDS
+#if USE_XR_INPUT && INCLUDE_UNITY_XR_HANDS
             if (m_HandSubsystems == null)
                 InitHandSubsystems();
 
@@ -333,7 +338,7 @@ namespace Unity.PolySpatial.XR.Internals
 
         void SetXRHandData(PolySpatialXRHandData handData, PolySpatialHostID hostID)
         {
-#if INCLUDE_UNITY_XR_HANDS
+#if USE_XR_INPUT && INCLUDE_UNITY_XR_HANDS
             if (m_HandSubsystems == null)
                 InitHandSubsystems();
 
@@ -347,7 +352,7 @@ namespace Unity.PolySpatial.XR.Internals
 
         void UpdateHandLayout(NativeArray<bool> updatedHandLayout)
         {
-#if INCLUDE_UNITY_XR_HANDS
+#if USE_XR_INPUT && INCLUDE_UNITY_XR_HANDS
             if (m_HandSubsystems == null)
                 InitHandSubsystems();
 

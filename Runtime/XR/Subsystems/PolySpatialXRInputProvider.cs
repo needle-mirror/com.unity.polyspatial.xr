@@ -49,5 +49,15 @@ namespace Unity.PolySpatial.InputDevices
                 return s_Subsystem;
             }
         }
+
+        internal static void Reset()
+        {
+            if (s_Subsystem != null)
+            {
+                s_Subsystem.Stop();
+                s_Subsystem.Destroy();
+                s_Subsystem = null;
+            }
+        }
     }
 }

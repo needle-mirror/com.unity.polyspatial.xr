@@ -43,6 +43,16 @@
             "name": "com.unity.xr.visionos",
             "expression": "1.0.0",
             "define": "INCLUDE_UNITY_XR_VISIONOS"
+        },
+        {
+            "name": "com.unity.xr.arfoundation",
+            "expression": "6.5.0",
+            "define": "ARFOUNDATION_6_5_OR_NEWER"
+        },
+        {
+            "name": "com.unity.xr.arfoundation",
+            "expression": "6.6.0-pre.0",
+            "define": "ARFOUNDATION_6_6_OR_NEWER"
         }
     ],
     "noEngineReferences": false

@@ -224,7 +224,11 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
                 var vertices = plane.vertices;
                 if (vertices.IsCreated)
                 {
+#if ARFOUNDATION_6_6_OR_NEWER
+                    Unity.XR.CoreUtils.NativeArrayUtils.EnsureExactSize(ref boundary, vertices.Length, allocator);
+#else
                     CreateOrResizeNativeArrayIfNecessary(vertices.Length, allocator, ref boundary);
+#endif
                     NativeArray<Vector2>.Copy(vertices, boundary);
                 }
                 else if (boundary.IsCreated)
@@ -270,7 +274,11 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
                 supportsHorizontalPlaneDetection = true,
                 supportsVerticalPlaneDetection = true,
                 supportsArbitraryPlaneDetection = false,
+#if ARFOUNDATION_6_5_OR_NEWER
+                supportsBoundaryVerticesDelegate = () => true
+#else
                 supportsBoundaryVertices = true
+#endif
             };
             XRPlaneSubsystemDescriptor.Register(cinfo);
         }

@@ -1,10 +1,9 @@
-#if UNITY_EDITOR || ENABLE_XR_INPUT_REMOTING
-
 // ENABLE_VR is not defined on Game Core but the assembly is available with limited features when the XR module is enabled.
 #if UNITY_INPUT_SYSTEM_ENABLE_XR && (ENABLE_VR || UNITY_GAMECORE) && !UNITY_FORCE_INPUTSYSTEM_XR_OFF
 #define USE_XR_INPUT
 #endif
 
+#if UNITY_EDITOR || ENABLE_XR_INPUT_REMOTING
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -339,12 +338,16 @@ namespace Unity.PolySpatial.XR.Internals
         /// PolySpatial XR or not. This singleton instance maintains that
         /// one tracker for use.
         /// </summary>
-        static readonly Lazy<PolySpatialXrInputTracker> s_Instance = new(() =>
-        {
-            return new PolySpatialXrInputTracker();
-        });
+        static Lazy<PolySpatialXrInputTracker> s_Instance = new(() => new PolySpatialXrInputTracker());
 
         internal static PolySpatialXrInputTracker Instance => s_Instance.Value;
+
+        internal static void Reset()
+        {
+            if (s_Instance.IsValueCreated)
+                s_Instance.Value.Dispose();
+            s_Instance = new(() => new PolySpatialXrInputTracker());
+        }
 
         internal void Initialize()
         {
@@ -371,9 +374,11 @@ namespace Unity.PolySpatial.XR.Internals
             if (mappedDevice.inputDevice == null)
                 return;
 
+#if USE_XR_INPUT && INCLUDE_UNITY_XR_HANDS
             if (mappedDevice.inputDevice is not PolySpatialRemoteHmdDevice &&
                 mappedDevice.inputDevice is not PolySpatialRemoteControllerDevice)
                 return;
+#endif
 
             var device = mappedDevice.inputDevice;
             var deviceId = (uint)device.deviceId;
@@ -384,11 +389,12 @@ namespace Unity.PolySpatial.XR.Internals
             {
                 deviceAdded = TryAddXrInputSystemControllerDeviceId(deviceId, leftHand, rightHand, mappedDevice, device);
             }
+#if USE_XR_INPUT && INCLUDE_UNITY_XR_HANDS
             else if (device is PolySpatialRemoteHmdDevice _)
             {
                 deviceAdded = TryAddXrInputSystemHmdDeviceId(deviceId, mappedDevice, device);
             }
-
+#endif
             if (deviceAdded)
             {
                 // Right now, we just always select the last device added to fill
@@ -468,6 +474,7 @@ namespace Unity.PolySpatial.XR.Internals
             // Only update the input system and XR Node states for the currently active devices.
             // This is to ensure that we don't have multiples of XR Node States that confuse
             // Tracked Pose Driver.
+#if USE_XR_INPUT && INCLUDE_UNITY_XR_HANDS
             if (((xrMappedDevice.xrDeviceType == XRDeviceType.LeftController && m_ActiveLeftController.remoteDeviceId == deviceId)
                  || (xrMappedDevice.xrDeviceType == XRDeviceType.RightController && m_ActiveRightController.remoteDeviceId == deviceId))
                 && device is PolySpatialRemoteControllerDevice controller)
@@ -480,6 +487,7 @@ namespace Unity.PolySpatial.XR.Internals
             {
                 UpdateXrHmdState(xrInputDeviceId, remoteHMDDevice, eventPtr);
             }
+#endif
         }
 
         static bool IsControlPressed(ButtonControl control, InputEventPtr eventPtr)
@@ -502,6 +510,7 @@ namespace Unity.PolySpatial.XR.Internals
         /// <param name="xrInputDeviceId">The device id of the device we are going to mirror</param>
         /// <param name="remoteHMDDevice">The actual instance of the device.</param>
         /// <param name="eventPtr">An event ptr to an event from that device that we can use to update data from.</param>
+#if USE_XR_INPUT
         static void UpdateXrHmdState(uint xrInputDeviceId, PolySpatialRemoteHmdDevice remoteHMDDevice, InputEventPtr eventPtr)
         {
             if (HasControlChanged(remoteHMDDevice.isTracked, eventPtr))
@@ -528,7 +537,7 @@ namespace Unity.PolySpatial.XR.Internals
             if (HasControlChanged(remoteHMDDevice.centerEyeRotation, eventPtr))
                 XrInputSystemNativeApi.SetCenterEyeRotation(xrInputDeviceId, remoteHMDDevice.centerEyeRotation.ReadValueFromEvent(eventPtr));
         }
-
+#endif
         /// <summary>
         /// Updates the state of the XR Input System Controller devices that are mirroring the
         /// PolySpatialRemoteControllerDevice.
@@ -541,6 +550,7 @@ namespace Unity.PolySpatial.XR.Internals
         /// <param name="xrInputDeviceId">The device id of the device we are going to mirror</param>
         /// <param name="remoteControllerDevice">The actual instance of the device.</param>
         /// <param name="eventPtr">An event ptr to an event from that device that we can use to update data from.</param>
+#if USE_XR_INPUT
         static void UpdateXrControllerState(uint xrInputDeviceId, PolySpatialRemoteControllerDevice remoteControllerDevice, InputEventPtr eventPtr)
         {
             // As long as we have a device, we need to ensure that it stays marked as tracked.
@@ -587,7 +597,7 @@ namespace Unity.PolySpatial.XR.Internals
             if (HasControlChanged(remoteControllerDevice.secondary2DAxisTouch, eventPtr))
                 XrInputSystemNativeApi.SetSecondary2DTouch(xrInputDeviceId, IsControlPressed(remoteControllerDevice.secondary2DAxisTouch, eventPtr));
         }
-
+#endif
         public void Dispose()
         {
             if (m_Disposed)

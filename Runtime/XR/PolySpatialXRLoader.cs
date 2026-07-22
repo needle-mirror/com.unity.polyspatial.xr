@@ -1,3 +1,8 @@
+// ENABLE_VR is not defined on Game Core but the assembly is available with limited features when the XR module is enabled.
+#if UNITY_INPUT_SYSTEM_ENABLE_XR && (ENABLE_VR || UNITY_GAMECORE) && !UNITY_FORCE_INPUTSYSTEM_XR_OFF
+#define USE_XR_INPUT
+#endif
+
 using System.Collections.Generic;
 using Unity.PolySpatial.InputDevices;
 using Unity.PolySpatial.XR.Internals.Subsystems;
@@ -49,7 +54,7 @@ namespace Unity.PolySpatial.XR.Internals
             if (sessionSubsystem == null)
                 Logging.LogError(LogCategory.XR, "Failed to load session subsystem.");
 
-#if INCLUDE_UNITY_XR_HANDS
+#if USE_XR_INPUT && INCLUDE_UNITY_XR_HANDS
             CreateSubsystem<XRHandSubsystemDescriptor, XRHandSubsystem>(s_HandSubsystemDescriptors, PolySpatialHandSubsystem.k_SubsystemId);
 
             var handSubsystem = GetLoadedSubsystem<XRHandSubsystem>();
@@ -76,7 +81,9 @@ namespace Unity.PolySpatial.XR.Internals
         public override bool Deinitialize()
         {
 #if INCLUDE_UNITY_XR_HANDS
-            m_HandSubsystemUpdater?.Stop();
+            // Destory calls Stop internally.
+            m_HandSubsystemUpdater?.Destroy();
+            m_HandSubsystemUpdater = null;
             DestroySubsystem<XRHandSubsystem>();
 #endif
 
