@@ -24,6 +24,11 @@
             "name": "com.unity.xr.interaction.toolkit",
             "expression": "3",
             "define": "HAS_XR_INTERACTION_TOOLKIT"
+        },
+        {
+            "name": "com.unity.xr.management",
+            "expression": "4.7",
+            "define": "HAS_XR_MANAGEMENT_4_7_OR_NEWER"
         }
     ],
     "noEngineReferences": false

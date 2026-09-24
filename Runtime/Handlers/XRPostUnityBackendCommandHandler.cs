@@ -27,7 +27,7 @@ namespace Unity.PolySpatial.XR.Internals
                         var viewSubgraph = m_UnityBackend.SceneGraph.ViewSubgraphs[id.viewSubgraphIndex];
                         if (viewSubgraph.VolumeView != null)
                         {
-                            var entity = viewSubgraph.IidToEntity[id.id];
+                            var entity = viewSubgraph.GetEntity(id.ToEntityID());
                             var interactableProxy = entity.UnitySceneGraphGameObject.GetOrAddBackingComponent<XRInteractableProxy>();
                             interactableProxy.Initialize(id, viewSubgraph.VolumeView.ViewId, viewSubgraph.RootGameObject.transform.parent);
                         }
@@ -45,7 +45,7 @@ namespace Unity.PolySpatial.XR.Internals
                         var viewSubgraph = m_UnityBackend.SceneGraph.ViewSubgraphs[id.viewSubgraphIndex];
                         if (viewSubgraph.VolumeView != null)
                         {
-                            var entity = viewSubgraph.IidToEntity[id.id];
+                            var entity = viewSubgraph.GetEntity(id.ToEntityID());
                             var eventSystemProxy = entity.UnitySceneGraphGameObject.GetOrAddBackingComponent<XRInteractableProxy>();
                                 eventSystemProxy.Initialize(id, viewSubgraph.VolumeView.ViewId, viewSubgraph.RootGameObject.transform.parent);
                         }
@@ -63,7 +63,7 @@ namespace Unity.PolySpatial.XR.Internals
                         var viewSubgraph = m_UnityBackend.SceneGraph.ViewSubgraphs[id.viewSubgraphIndex];
                         if (viewSubgraph.VolumeView != null)
                         {
-                            var entity = viewSubgraph.IidToEntity[id.id];
+                            var entity = viewSubgraph.GetEntity(id.ToEntityID());
                             var eventSystemProxy = entity.UnitySceneGraphGameObject.GetOrAddBackingComponent<XRInteractableProxy>();
                             eventSystemProxy.Initialize(id, viewSubgraph.VolumeView.ViewId, viewSubgraph.RootGameObject.transform.parent);
                         }

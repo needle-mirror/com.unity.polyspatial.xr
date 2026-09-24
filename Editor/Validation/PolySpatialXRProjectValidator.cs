@@ -57,7 +57,11 @@ namespace UnityEditor.PolySpatial.XR.Validation
 
         static bool TryGetGeneralXRSettings(out XRGeneralSettingsPerBuildTarget generalSettings)
         {
+#if HAS_XR_MANAGEMENT_4_7_OR_NEWER
+            EditorBuildSettings.TryGetConfigObject(XRGeneralSettings.settingsKey, out generalSettings);
+#else
             EditorBuildSettings.TryGetConfigObject(XRGeneralSettings.k_SettingsKey, out generalSettings);
+#endif
             if (generalSettings == null)
             {
                 var assets = AssetDatabase.FindAssets("t:XRGeneralSettingsPerBuildTarget");
@@ -78,7 +82,7 @@ namespace UnityEditor.PolySpatial.XR.Validation
             if (TryGetGeneralXRSettings(out var generalSettings))
             {
                 var buildTargetSettings = generalSettings.SettingsForBuildTarget(BuildTargetGroup.Standalone);
-                var pluginsSettings = buildTargetSettings.AssignedSettings;
+                var pluginsSettings = buildTargetSettings.Manager;
                 didAssign = XRPackageMetadataStore.AssignLoader(pluginsSettings, loaderName, BuildTargetGroup.Standalone);
             }
 
@@ -95,7 +99,7 @@ namespace UnityEditor.PolySpatial.XR.Validation
             if (TryGetGeneralXRSettings(out var generalSettings))
             {
                 var buildTargetSettings = generalSettings.SettingsForBuildTarget(BuildTargetGroup.Standalone);
-                var pluginsSettings = buildTargetSettings.AssignedSettings;
+                var pluginsSettings = buildTargetSettings.Manager;
                 didRemove = XRPackageMetadataStore.RemoveLoader(pluginsSettings, loaderName, BuildTargetGroup.Standalone);
             }
 
