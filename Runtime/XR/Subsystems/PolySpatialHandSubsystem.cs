@@ -58,7 +58,7 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
         {
             UpdateSuccessFlags m_UpdateFlags = UpdateSuccessFlags.None;
             readonly HandData m_HandData = new();
-            PolySpatialHostID m_FirstHostId;
+            PolySpatialConnectionID m_FirstConnectionID;
 
             bool m_HandLayoutUpdated;
 
@@ -73,7 +73,7 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
             public override void Start()
             {
                 // Reset first host ID to accept a new connection. Commands shouldn't be coming from local, so a connectionId of 0 can be considered invalid
-                m_FirstHostId = default;
+                m_FirstConnectionID = default;
             }
 
             public override void Stop() { }
@@ -156,14 +156,14 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
                 return ret;
             }
 
-            internal void OnTrackingEvent(PolySpatialHandID handId, PolySpatialXRHandTrackingEvent evt, PolySpatialHostID hostID)
+            internal void OnTrackingEvent(PolySpatialHandID handId, PolySpatialXRHandTrackingEvent evt, PolySpatialConnectionID connectionId)
             {
-                // If m_FirstHostId is equal to the default value, we know this is the first tracking event we've received since startup
-                if (m_FirstHostId == default)
-                    m_FirstHostId = hostID;
+                // If m_FirstConnectionID is equal to the default value, we know this is the first tracking event we've received since startup
+                if (m_FirstConnectionID == default)
+                    m_FirstConnectionID = connectionId;
 
                 // If we get hand tracking events from any host other than the first, ignore it
-                if (hostID != m_FirstHostId)
+                if (connectionId != m_FirstConnectionID)
                     return;
 
                 switch (handId)
@@ -183,16 +183,16 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
                 }
             }
 
-            internal void SetHandData(PolySpatialXRHandData handData, PolySpatialHostID hostID)
+            internal void SetHandData(PolySpatialXRHandData handData, PolySpatialConnectionID connectionId)
             {
-                if (m_FirstHostId == default) //This should get initialized from Tracking event Acquired
+                if (m_FirstConnectionID == default) //This should get initialized from Tracking event Acquired
                 {
                     // Eat all hand updates until we get our first OnTrackingEvent, this is expected.
                     return;
                 }
 
                 // If we get hand data from any host other than the first, ignore it
-                if (hostID != m_FirstHostId)
+                if (connectionId != m_FirstConnectionID)
                     return;
 
                 switch (handData.handID)
@@ -226,11 +226,11 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
         }
 
         // Notifies the provider that a hand tracking event has occurred. Lost or Acquired
-        internal void OnTrackingEvent(PolySpatialHandID handId, PolySpatialXRHandTrackingEvent evt, PolySpatialHostID hostID)
+        internal void OnTrackingEvent(PolySpatialHandID handId, PolySpatialXRHandTrackingEvent evt, PolySpatialConnectionID connectionId)
         {
             if (provider is PolySpatialHandProvider handProvider)
             {
-                handProvider.OnTrackingEvent(handId, evt, hostID);
+                handProvider.OnTrackingEvent(handId, evt, connectionId);
             }
             else
             {
@@ -239,11 +239,11 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
         }
 
         // Sets the data for joints on the hand. Joint pose, rotation, velocity, and angular velocity are set.
-        internal void SetHandData(PolySpatialXRHandData handData, PolySpatialHostID hostID)
+        internal void SetHandData(PolySpatialXRHandData handData, PolySpatialConnectionID connectionId)
         {
             if (provider is PolySpatialHandProvider handProvider)
             {
-                handProvider.SetHandData(handData, hostID);
+                handProvider.SetHandData(handData, connectionId);
             }
             else
             {

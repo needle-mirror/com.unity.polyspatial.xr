@@ -63,7 +63,7 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
             HashSet<TrackableId> m_RemovedPlanes = new(k_InitialPlanesCapacity);
             Dictionary<TrackableId, DiscoveredPlane> m_AllPlanes = new();
 
-            private PolySpatialHostID m_HostID;
+            private PolySpatialConnectionID m_ConnectionID;
 
             public override void Destroy()
             {
@@ -75,11 +75,11 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
                 DiscoveredPlane.DisposeAllVertices();
             }
 
-            public void InitializeClient(PolySpatialHostID hostID)
+            public void InitializeClient(PolySpatialConnectionID connectionId)
             {
-                m_HostID = hostID;
+                m_ConnectionID = connectionId;
 
-                Logging.Log(LogCategory.XR, $"Plane Subsystem has initialized client with hostID: {hostID}");
+                Logging.Log(LogCategory.XR, $"Plane Subsystem has initialized client with connectionId: {connectionId}");
             }
 
             // We need to make sure there is only 1 update event per frame (Added, updated, or removed)
@@ -239,9 +239,9 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
             }
         }
 
-        internal void InitializeClient(PolySpatialHostID hostID)
+        internal void InitializeClient(PolySpatialConnectionID connectionId)
         {
-            PolySpatialProvider?.InitializeClient(hostID);
+            PolySpatialProvider?.InitializeClient(connectionId);
         }
 
         internal void TryAddPlane(DiscoveredPlane plane)

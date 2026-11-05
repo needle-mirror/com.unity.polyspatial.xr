@@ -7,11 +7,9 @@ namespace Unity.PolySpatial.XR.Internals
 {
     class PolySpatialXRMeshTracker : IDisposable
     {
-        PolySpatialHostID m_PolySpatialHostID;
-
         PolySpatialXRMeshManager m_MeshManager;
 
-        internal void InitializeXRMeshes(PolySpatialHostID polySpatialHostID)
+        internal void InitializeXRMeshes()
         {
             m_MeshManager = PolySpatialXRMeshManager.instance;
 
@@ -20,8 +18,6 @@ namespace Unity.PolySpatial.XR.Internals
                 Logging.LogError(LogCategory.XR, "No PolySpatialXRMeshManager found in scene.");
                 return;
             }
-
-            m_PolySpatialHostID = polySpatialHostID;
 
             m_MeshManager.meshesChanged += MeshManagerOnMeshesChanged;
 
@@ -33,7 +29,7 @@ namespace Unity.PolySpatial.XR.Internals
         // This is invoked in `Update` from PolySpatialXRMeshManager where there is a change to the set of meshes that has been detected.
         void MeshManagerOnMeshesChanged(PolySpatialXRMeshesChanged meshChangeData)
         {
-            HostCommandHelper.SendXRMeshData(meshChangeData, m_PolySpatialHostID);
+            HostCommandHelper.SendXRMeshData(meshChangeData);
             foreach (var mesh in meshChangeData.addOrUpdatedArray)
             {
                 mesh.vertices.Value.Dispose();

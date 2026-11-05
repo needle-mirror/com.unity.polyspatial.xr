@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Scripting;
 using UnityEngine.XR.ARSubsystems;
@@ -21,6 +22,9 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
 
             public override TrackingState trackingState => TrackingState.Tracking;
 
+#if ARFOUNDATION_6_7_OR_NEWER
+            [Obsolete]
+#endif
             public override Promise<SessionAvailability> GetAvailabilityAsync() =>
                 Promise<SessionAvailability>.CreateResolvedPromise(SessionAvailability.Installed | SessionAvailability.Supported);
 
@@ -77,7 +81,9 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
                 id = k_SubsystemId,
                 providerType = typeof(PolySpatialXRSessionProvider),
                 subsystemTypeOverride = typeof(PolySpatialXRSessionSubsystem),
+#if !ARFOUNDATION_6_7_OR_NEWER
                 supportsInstall = false,
+#endif
                 supportsMatchFrameRate = false,
             });
         }

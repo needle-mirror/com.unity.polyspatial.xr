@@ -1,7 +1,6 @@
 using System;
 using Unity.PolySpatial.Internals;
 using UnityEngine;
-using FlatSharp.Runtime.Extensions;
 using Unity.PolySpatial.Input;
 using UnityObject = UnityEngine.Object;
 
@@ -58,49 +57,43 @@ namespace Unity.PolySpatial.XR.Internals
             {
                 case PolySpatialCommand.BeginAppFrame:
                 {
-                    PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out PolySpatialInstanceID* id, out PolySpatialFrameData* frameData);
-                    if (id->IsLocal())
+                    PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out PolySpatialFrameData* frameData);
+                    if (cmdHeader.connectionId.IsLocal())
                         break;
 
-                    XRHandTracker?.UpdateFrameNumber(id->hostId, frameData->frameNumber);
+                    XRHandTracker?.UpdateFrameNumber(cmdHeader.connectionId, frameData->frameNumber);
 
                     break;
                 }
                 case PolySpatialCommand.BeginSession:
                 {
-                    PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out PolySpatialInstanceID* id, out Span<byte> data);
-                    fixed (byte* ptr = data)
+                    PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out PolySpatialSessionData session);
+                    var xrSettings = session.xrSettings;
+                    if (xrSettings != null)
                     {
-                        var session = PolySpatialSessionData.Serializer.Parse(data.Length, ptr);
-                        var xrSettings = session.xrSettings;
-                        if (xrSettings != null)
+                        Logging.Log(LogCategory.Input, $"Has XR in connected simulation.");
+                        if (xrSettings.hasXRRig)
                         {
-                            Logging.Log(LogCategory.Input, $"Has XR in connected simulation.");
-                            if (xrSettings.hasXRRig)
+                            var xrRigHelper = UnityObject.FindAnyObjectByType<XRRigHelper>();
+                            if (xrRigHelper)
                             {
-                                var xrRigHelper = UnityObject.FindAnyObjectByType<XRRigHelper>();
-                                if (xrRigHelper)
-                                {
-                                    Logging.Log(LogCategory.Input, $"Disabling host rig controls as sim wil render it's own.");
-                                    // If the simulation has a rig, we need to disable rendering of our
-                                    // controllers to remove visual duplicates.
-                                    xrRigHelper.DisableObjects();
-                                }
+                                Logging.Log(LogCategory.Input, $"Disabling host rig controls as sim wil render it's own.");
+                                // If the simulation has a rig, we need to disable rendering of our
+                                // controllers to remove visual duplicates.
+                                xrRigHelper.DisableObjects();
                             }
                         }
                     }
-                    XRDisplayTracker?.StartSession(id->hostId);
-
-                    ARPlaneTracker.SetHostID(id->hostId);
+                    XRDisplayTracker?.StartSession(cmdHeader.connectionId);
 
                     // Send the current state of the hand tracking. Hand tracking state might be active when a Client connects.
-                    XRHandTracker.InitHandTracking(id->hostId);
+                    XRHandTracker.InitHandTracking(cmdHeader.connectionId);
 
-                    ARImageTracker.InitializeARImageTracker(id->hostId);
+                    ARImageTracker.InitializeARImageTracker();
 
-                    XRMeshTracker.InitializeXRMeshes(id->hostId);
+                    XRMeshTracker.InitializeXRMeshes();
 
-                    PolySpatialXRHeadTracker.StartConnection(id->hostId);
+                    PolySpatialXRHeadTracker.StartConnection(cmdHeader.connectionId);
                     break;
                 }
                 case PolySpatialCommand.EndSession:
@@ -135,23 +128,16 @@ namespace Unity.PolySpatial.XR.Internals
 
                 case PolySpatialCommand.CreateOrUpdateReferenceImageLibrary:
                 {
-                    PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out Span<byte> data);
-                    fixed (byte* p = data)
-                    {
-                        var referenceImageLibrary = PolySpatialReferenceImageLibrary.Serializer.Parse(data.Length, p);
-                        ARImageTracker.CreateOrUpdateReferenceImageLibrary(referenceImageLibrary);
-                    }
+                    PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes,
+                        out PolySpatialReferenceImageLibrary referenceImageLibrary);
+                    ARImageTracker.CreateOrUpdateReferenceImageLibrary(referenceImageLibrary);
 
                     break;
                 }
                 case PolySpatialCommand.AddTrackedImage:
                 {
-                    PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out Span<byte> data);
-                    fixed (byte* p = data)
-                    {
-                        var image = PolySpatialXRReferenceImage.Serializer.Parse(data.Length, p);
-                        ARImageTracker.AddTrackedImage(image);
-                    }
+                    PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out PolySpatialXRReferenceImage image);
+                    ARImageTracker.AddTrackedImage(image);
                     break;
                 }
                 case PolySpatialCommand.XRPlaneSubsystemStart:
@@ -169,8 +155,7 @@ namespace Unity.PolySpatial.XR.Internals
             NextHandler.HandleCommand(cmdHeader, argCount, argValues, argSizes);
         }
 
-        [CommandHandlerCreationCallback(stage: CommandHandlerGraph.Stage.NetworkAppHost)]
-        static XRLocalCommandHandler Create(CommandHandlerGraph.HandlerCreationContext context)
+        internal static XRLocalCommandHandler Create(CommandHandlerGraph.HandlerCreationContext context)
         {
             return new XRLocalCommandHandler();
         }

@@ -251,7 +251,7 @@ namespace Unity.PolySpatial.XR.Internals
             return Enumerable.Range(0, length).Select(_ => new T()).ToArray();
         }
 
-        internal void StartSession(PolySpatialHostID hostID)
+        internal void StartSession(PolySpatialConnectionID connectionId)
         {
             // Send current data immediately on session start, in addition to whenever it changes.
             if (m_Data.running)

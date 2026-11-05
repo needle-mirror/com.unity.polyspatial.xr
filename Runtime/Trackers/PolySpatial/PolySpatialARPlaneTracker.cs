@@ -18,8 +18,6 @@ namespace Unity.PolySpatial.XR.Internals
     {
         bool m_HostConnected;
 
-        PolySpatialHostID m_PolySpatialHostID;
-
         /// <summary>
         /// This should be initialized with the ARPlaneManager to listen to.
         /// </summary>
@@ -76,11 +74,6 @@ namespace Unity.PolySpatial.XR.Internals
             EndSession();
         }
 
-        internal void SetHostID(PolySpatialHostID hostID)
-        {
-            m_PolySpatialHostID = hostID;
-        }
-
         internal void InitializeARPlanes()
         {
             var planeManagers = ObjectExtensions.FindObjectsByType<ARPlaneManager>();
@@ -117,7 +110,7 @@ namespace Unity.PolySpatial.XR.Internals
             // to the Client. So the Client will wait for the Init event in PolySpatialARPlaneSubsystem.InitializeClient
             // before doing any Add/Update/Remove events (because the ARFoundation doesn't like updating planes that
             // haven't been previously Added, and does other various sanity checks on Add/Update/Remove events)
-            HostCommandHelper.InitializeARPlanes(planeEngineData, m_PolySpatialHostID);
+            HostCommandHelper.InitializeARPlanes(planeEngineData);
             planeEngineData.planes.Clear();
 
             m_HostConnected = true;
@@ -171,7 +164,7 @@ namespace Unity.PolySpatial.XR.Internals
 
             if (planeEngineData.planes.Count > 0)
             {
-                HostCommandHelper.UpdateARPlanes(planeEngineData, m_PolySpatialHostID);
+                HostCommandHelper.UpdateARPlanes(planeEngineData);
                 planeEngineData.planes.Clear();
             }
         }

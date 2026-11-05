@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Unity.Collections;
 using Unity.PolySpatial.Internals;
 using UnityEngine;
@@ -94,7 +95,24 @@ namespace Unity.PolySpatial.XR.Internals.Subsystems
                 return changes;
             }
 
-            public override RuntimeReferenceImageLibrary CreateRuntimeLibrary(XRReferenceImageLibrary serializedLibrary)
+#if ARFOUNDATION_6_7_OR_NEWER
+            [Obsolete]
+#endif
+            public override RuntimeReferenceImageLibrary CreateRuntimeLibrary(XRReferenceImageLibrary serializedLibrary) =>
+                CreateLibrary(serializedLibrary);
+
+#if ARFOUNDATION_6_7_OR_NEWER
+            public override Awaitable<Result<RuntimeReferenceImageLibrary>> TryCreateRuntimeLibraryAsync(
+                XRReferenceImageLibrary serializedLibrary,
+                CancellationToken cancellationToken = default)
+            {
+                var completionSource = new AwaitableCompletionSource<Result<RuntimeReferenceImageLibrary>>();
+                completionSource.SetResult(new Result<RuntimeReferenceImageLibrary>(CreateLibrary(serializedLibrary)));
+                return completionSource.Awaitable;
+            }
+#endif
+
+            static RuntimeReferenceImageLibrary CreateLibrary(XRReferenceImageLibrary serializedLibrary)
             {
                 // Do not try to send the image library if PolySpatial hasn't been initialized
                 if (PolySpatialRuntime.HasLocalSimulation)

@@ -21,51 +21,57 @@ namespace Unity.PolySpatial.XR.Internals
             {
                 case PolySpatialCommand.CreateOrUpdateCollider:
                 {
+                    var viewSubgraph = m_UnityBackend.SceneGraph.GetViewSubgraph(cmdHeader.viewSubgraphIndex);
                     foreach (var change in PolySpatialArgs.ExtractChangeListFromArgs<PolySpatialColliderData>(argCount, argValues, argSizes))
                     {
-                        var id = change.objectData.instanceId;
-                        var viewSubgraph = m_UnityBackend.SceneGraph.ViewSubgraphs[id.viewSubgraphIndex];
+                        var id = change.objectData.entityId;
                         if (viewSubgraph.VolumeView != null)
                         {
-                            var entity = viewSubgraph.GetEntity(id.ToEntityID());
+                            var entity = viewSubgraph.GetEntity(id);
                             var interactableProxy = entity.UnitySceneGraphGameObject.GetOrAddBackingComponent<XRInteractableProxy>();
-                            interactableProxy.Initialize(id, viewSubgraph.VolumeView.ViewId, viewSubgraph.RootGameObject.transform.parent);
+                            interactableProxy.Initialize(
+                                id, viewSubgraph.VolumeView.ViewId, viewSubgraph.ConnectionID,
+                                viewSubgraph.RootGameObject.transform.parent);
                         }
                     }
                     break;
                 }
                 case PolySpatialCommand.CreateOrUpdateCanvasRenderer:
                 {
+                    var viewSubgraph = m_UnityBackend.SceneGraph.GetViewSubgraph(cmdHeader.viewSubgraphIndex);
                     foreach (var change in PolySpatialArgs.ExtractChangeListSerializedFromArgs<PolySpatialCanvasRendererData>(argCount, argValues, argSizes))
                     {
                         if (!change.engineData.clipRect.HasValue)
                             continue;
 
-                        var id = change.objectData.instanceId;
-                        var viewSubgraph = m_UnityBackend.SceneGraph.ViewSubgraphs[id.viewSubgraphIndex];
+                        var id = change.objectData.entityId;
                         if (viewSubgraph.VolumeView != null)
                         {
-                            var entity = viewSubgraph.GetEntity(id.ToEntityID());
+                            var entity = viewSubgraph.GetEntity(id);
                             var eventSystemProxy = entity.UnitySceneGraphGameObject.GetOrAddBackingComponent<XRInteractableProxy>();
-                                eventSystemProxy.Initialize(id, viewSubgraph.VolumeView.ViewId, viewSubgraph.RootGameObject.transform.parent);
+                                eventSystemProxy.Initialize(
+                                id, viewSubgraph.VolumeView.ViewId, viewSubgraph.ConnectionID,
+                                viewSubgraph.RootGameObject.transform.parent);
                         }
                     }
                     break;
                 }
                 case PolySpatialCommand.CreateOrUpdateUIGraphic:
                 {
+                    var viewSubgraph = m_UnityBackend.SceneGraph.GetViewSubgraph(cmdHeader.viewSubgraphIndex);
                     foreach (var change in PolySpatialArgs.ExtractChangeListFromArgs<PolySpatialUIGraphicData>(argCount, argValues, argSizes))
                     {
                         if (!change.engineData.raycastTarget)
                             continue;
 
-                        var id = change.objectData.instanceId;
-                        var viewSubgraph = m_UnityBackend.SceneGraph.ViewSubgraphs[id.viewSubgraphIndex];
+                        var id = change.objectData.entityId;
                         if (viewSubgraph.VolumeView != null)
                         {
-                            var entity = viewSubgraph.GetEntity(id.ToEntityID());
+                            var entity = viewSubgraph.GetEntity(id);
                             var eventSystemProxy = entity.UnitySceneGraphGameObject.GetOrAddBackingComponent<XRInteractableProxy>();
-                            eventSystemProxy.Initialize(id, viewSubgraph.VolumeView.ViewId, viewSubgraph.RootGameObject.transform.parent);
+                            eventSystemProxy.Initialize(
+                                id, viewSubgraph.VolumeView.ViewId, viewSubgraph.ConnectionID,
+                                viewSubgraph.RootGameObject.transform.parent);
                         }
                     }
                     break;
@@ -75,8 +81,7 @@ namespace Unity.PolySpatial.XR.Internals
             NextHandler.HandleCommand(cmdHeader, argCount, argValues, argSizes);
         }
 
-        [CommandHandlerCreationCallback(stage: CommandHandlerGraph.Stage.PostLocalBackend)]
-        static XRPostUnityBackendCommandHandler Create(CommandHandlerGraph.HandlerCreationContext context)
+        internal static XRPostUnityBackendCommandHandler Create(CommandHandlerGraph.HandlerCreationContext context)
         {
             if (context.HasNetworkAppHost && context.CommandHandlerGraph.LocalBackend is PolySpatialUnityBackend unityBackend)
             {

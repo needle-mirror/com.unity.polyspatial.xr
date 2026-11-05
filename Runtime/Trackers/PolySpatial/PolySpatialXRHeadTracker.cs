@@ -10,7 +10,7 @@ namespace Unity.PolySpatial.XR.Internals
 {
     class PolySpatialXRHeadTracker : MonoBehaviour
     {
-        static PolySpatialHostID s_HostID;
+        static PolySpatialConnectionID s_ConnectionID;
         static bool s_Connected;
         bool m_IsSimulator;
 
@@ -24,9 +24,9 @@ namespace Unity.PolySpatial.XR.Internals
 #endif
         }
 
-        internal static void StartConnection(PolySpatialHostID hostID)
+        internal static void StartConnection(PolySpatialConnectionID connectionId)
         {
-            s_HostID = hostID;
+            s_ConnectionID = connectionId;
             s_Connected = true;
         }
 
@@ -44,7 +44,7 @@ namespace Unity.PolySpatial.XR.Internals
             // For example when switching tasks to move around in the simulator, focusing the Editor to make changes will reset head pose unless this command keeps firing
             if (m_IsSimulator || transform.hasChanged)
             {
-                HostCommandHelper.SendXRHeadPose(s_HostID, transform.position, transform.rotation);
+                HostCommandHelper.SendXRHeadPose(s_ConnectionID, transform.position, transform.rotation);
                 transform.hasChanged = false;
             }
         }

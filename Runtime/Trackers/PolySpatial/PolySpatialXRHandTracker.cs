@@ -26,7 +26,7 @@ namespace Unity.PolySpatial.XR.Internals
         HandCacheData m_LeftHand = new (PolySpatialHandID.Left);
         HandCacheData m_RightHand = new (PolySpatialHandID.Right);
 
-        PolySpatialHostID m_PolySpatialHostID;
+        PolySpatialConnectionID m_ConnectionID;
         int m_CurrentAppFrameNumber;
         int m_LastAppFrameNumber;
         bool m_Initialized;
@@ -116,7 +116,7 @@ namespace Unity.PolySpatial.XR.Internals
                 handID = hand.HandID,
                 rootPose = hand.Root,
                 updatedPoses = updatedPoses
-            }, m_PolySpatialHostID);
+            });
         }
 
         //Polling for hand subsystem and subscribing to hand data changed event
@@ -137,13 +137,13 @@ namespace Unity.PolySpatial.XR.Internals
                 m_HandSubsystem.trackingLost += OnTrackingLost;
                 m_HandSubsystem.updatedHands += OnUpdatedHands;
 
-                HostCommandHelper.UpdateHandLayout(m_HandSubsystem.jointsInLayout, m_PolySpatialHostID);
+                HostCommandHelper.UpdateHandLayout(m_HandSubsystem.jointsInLayout);
 
                 m_Initialized = true;
             }
             else
             {
-                if (!m_PolySpatialHostID.IsLocal())
+                if (!m_ConnectionID.IsLocal())
                 {
                     // Prevent hand updates from being sent over the network faster than the app simulation is running
                     // This is because XRHandData is too big to send at 90hz over network. This could change once todo LXR-4000 is completed
@@ -240,8 +240,7 @@ namespace Unity.PolySpatial.XR.Internals
             }
 
             HostCommandHelper.OnXRHandTrackingEvent(isLeftHand ? PolySpatialHandID.Left : PolySpatialHandID.Right,
-                PolySpatialXRHandTrackingEvent.Lost,
-                m_PolySpatialHostID);
+                PolySpatialXRHandTrackingEvent.Lost);
         }
 
         void OnTrackingAcquired(XRHand hand)
@@ -258,8 +257,7 @@ namespace Unity.PolySpatial.XR.Internals
             }
 
             HostCommandHelper.OnXRHandTrackingEvent(isLeftHand ? PolySpatialHandID.Left : PolySpatialHandID.Right,
-                PolySpatialXRHandTrackingEvent.Acquired,
-                m_PolySpatialHostID);
+                PolySpatialXRHandTrackingEvent.Acquired);
         }
 
         internal void EndSession()
@@ -267,25 +265,25 @@ namespace Unity.PolySpatial.XR.Internals
             Dispose();
         }
 
-        internal void UpdateFrameNumber(PolySpatialHostID hostID, int frameNumber)
+        internal void UpdateFrameNumber(PolySpatialConnectionID connectionId, int frameNumber)
         {
-            if (hostID != m_PolySpatialHostID)
+            if (connectionId != m_ConnectionID)
                 return;
 
             m_CurrentAppFrameNumber = frameNumber;
         }
 
-        internal void InitHandTracking(PolySpatialHostID hostID)
+        internal void InitHandTracking(PolySpatialConnectionID connectionId)
         {
-            m_PolySpatialHostID = hostID;
+            m_ConnectionID = connectionId;
             m_CurrentAppFrameNumber = 0;
             m_LastAppFrameNumber = 0;
 
             if (m_LeftHand.m_IsTracked)
-                HostCommandHelper.OnXRHandTrackingEvent(PolySpatialHandID.Left, PolySpatialXRHandTrackingEvent.Acquired, m_PolySpatialHostID);
+                HostCommandHelper.OnXRHandTrackingEvent(PolySpatialHandID.Left, PolySpatialXRHandTrackingEvent.Acquired);
 
             if (m_RightHand.m_IsTracked)
-                HostCommandHelper.OnXRHandTrackingEvent(PolySpatialHandID.Right, PolySpatialXRHandTrackingEvent.Acquired, m_PolySpatialHostID);
+                HostCommandHelper.OnXRHandTrackingEvent(PolySpatialHandID.Right, PolySpatialXRHandTrackingEvent.Acquired);
         }
 
         public void Dispose()
@@ -312,7 +310,7 @@ namespace Unity.PolySpatial.XR.Internals
         {
         }
 
-        public void InitHandTracking(PolySpatialHostID hostID)
+        public void InitHandTracking(PolySpatialConnectionID connectionId)
         {
         }
 

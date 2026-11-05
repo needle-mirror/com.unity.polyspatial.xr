@@ -15,8 +15,6 @@ namespace Unity.PolySpatial.XR.Internals
     {
         bool m_HostConnected;
 
-        PolySpatialHostID m_PolySpatialHostID;
-
         ARTrackedImageManager m_TrackedImageManager;
 
         bool m_LibraryUpdateInProgress;
@@ -58,7 +56,7 @@ namespace Unity.PolySpatial.XR.Internals
 
             if (trackedImageArray.images.Count > 0)
             {
-                HostCommandHelper.UpdateARTrackedImage(trackedImageArray, m_PolySpatialHostID);
+                HostCommandHelper.UpdateARTrackedImage(trackedImageArray);
                 trackedImageArray.images.Clear();
             }
         }
@@ -99,10 +97,8 @@ namespace Unity.PolySpatial.XR.Internals
             };
         }
 
-        internal void InitializeARImageTracker(PolySpatialHostID hostID)
+        internal void InitializeARImageTracker()
         {
-            m_PolySpatialHostID = hostID;
-
             var imageTrackerManagers = ObjectExtensions.FindObjectsByType<ARTrackedImageManager>();
 
             if (imageTrackerManagers.Length == 0)
@@ -223,7 +219,19 @@ namespace Unity.PolySpatial.XR.Internals
             // If there is an existing library clobber it and build a new one.
             // There doesn't appear to be a way in the existing API to only update an existing entry.
             var cleanLibrary = ScriptableObject.CreateInstance<XRReferenceImageLibrary>();
+#if ARFOUNDATION_6_7_OR_NEWER
+            // The command data is only valid for the duration of this call, so the library can't be built asynchronously.
+#pragma warning disable CS0618
+            var runtimeLibrary = m_TrackedImageManager.subsystem.CreateRuntimeLibrary(cleanLibrary);
+#pragma warning restore CS0618
+            if (!m_TrackedImageManager.TrySetReferenceLibrary(runtimeLibrary).IsSuccess())
+            {
+                Logging.LogError(LogCategory.XR, "Failed to set the runtime reference image library.");
+                return;
+            }
+#else
             m_TrackedImageManager.referenceLibrary = m_TrackedImageManager.subsystem.CreateRuntimeLibrary(cleanLibrary);
+#endif
 
             if (m_TrackedImageManager.referenceLibrary is MutableRuntimeReferenceImageLibrary mutableLibrary)
             {

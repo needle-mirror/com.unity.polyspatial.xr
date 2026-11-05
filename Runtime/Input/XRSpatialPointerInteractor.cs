@@ -89,7 +89,7 @@ namespace Unity.PolySpatial.XR.Input
                 case SpatialPointerPhase.Moved:
                 case SpatialPointerPhase.Cancelled:
                 case SpatialPointerPhase.Ended:
-                    if (TryGetInteractable(m_SpatialPointerState.targetId, out var interactable))
+                    if (TryGetInteractable(PolySpatialEntityID.For(m_SpatialPointerState.targetId), out var interactable))
                         targets.Add(interactable);
                     break;
                 default:
@@ -97,7 +97,7 @@ namespace Unity.PolySpatial.XR.Input
             }
         }
 
-        bool TryGetInteractable(long colliderId, out IXRInteractable interactable)
+        bool TryGetInteractable(PolySpatialEntityID colliderId, out IXRInteractable interactable)
         {
             var go = ObjectBridge.FindFromInstanceID<GameObject>(colliderId.ToUnityEntityId());
             if (go == null)

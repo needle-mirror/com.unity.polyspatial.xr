@@ -101,89 +101,69 @@ namespace Unity.PolySpatial.XR.Internals
             {
                 case PolySpatialHostCommand.InitializeARPlanes:
                 {
-                    PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out PolySpatialHostID* hostID, out Span<byte> data);
-                    fixed (byte* p = data)
-                    {
-                        InitARPlaneData(*hostID);
+                    PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out PolySpatialARPlaneArray planes);
+                    InitARPlaneData(cmdHeader.connectionId);
 
-                        var planes = PolySpatialARPlaneArray.Serializer.Parse(data.Length, p);
-                        foreach (var plane in planes.planes)
-                            SetARPlaneData(plane);
-                    }
+                    foreach (var plane in planes.planes)
+                        SetARPlaneData(plane);
 
                     break;
                 }
                 case PolySpatialHostCommand.UpdateARPlanes:
                 {
-                    PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out PolySpatialHostID* hostID, out Span<byte> data);
-                    fixed (byte* p = data)
-                    {
-                        var planes = PolySpatialARPlaneArray.Serializer.Parse(data.Length, p);
-                        foreach (var plane in planes.planes)
-                            SetARPlaneData(plane);
-                    }
+                    PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out PolySpatialARPlaneArray planes);
+                    foreach (var plane in planes.planes)
+                        SetARPlaneData(plane);
 
                     break;
                 }
                 case PolySpatialHostCommand.UpdateARTrackedImage:
                 {
-                    PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out PolySpatialHostID* hostID, out Span<byte> data);
-                    fixed (byte* p = data)
-                    {
-                        var images = PolySpatialARTrackedImageArray.Serializer.Parse(data.Length, p);
-                        foreach (var image in images.images)
-                            SetARTrackedImageData(image);
-                    }
+                    PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out PolySpatialARTrackedImageArray images);
+                    foreach (var image in images.images)
+                        SetARTrackedImageData(image);
 
                     break;
                 }
                 case PolySpatialHostCommand.OnXRHandTrackingEvent:
                 {
-                    PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out PolySpatialHostID* hostID, out PolySpatialHandID* handId,
+                    PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out PolySpatialHandID* handId,
                         out PolySpatialXRHandTrackingEvent* evt);
-                    OnXRHandTrackingEvent(*handId, *evt, *hostID);
+                    OnXRHandTrackingEvent(*handId, *evt, cmdHeader.connectionId);
                     break;
                 }
                 case PolySpatialHostCommand.SetXRHandData:
                 {
-                    PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out PolySpatialHostID* hostID, out Span<byte> data);
-
-                    fixed (byte* p = data)
-                    {
-                        var handData = PolySpatialXRHandData.Serializer.Parse(data.Length, p, FlatSharp.FlatBufferDeserializationOption.GreedyMutable);
-                        SetXRHandData(handData, *hostID);
-                    }
+                    PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes,
+                        out PolySpatialXRHandData handData, FlatSharp.FlatBufferDeserializationOption.GreedyMutable);
+                    SetXRHandData(handData, cmdHeader.connectionId);
 
                     break;
                 }
                 case PolySpatialHostCommand.UpdateHandLayout:
                 {
-                    Debug.Assert(argCount == 2);
+                    Debug.Assert(argCount == 1);
 
-                    var length = argSizes[1] / UnsafeUtility.SizeOf<bool>();
-                    var updatedHandLayout = PolySpatialUtils.GetTempNativeArrayForBuffer<bool>(argValues[1], length);
+                    var length = argSizes[0] / UnsafeUtility.SizeOf<bool>();
+                    var updatedHandLayout = PolySpatialUtils.GetTempNativeArrayForBuffer<bool>(argValues[0], length);
 
                     UpdateHandLayout(updatedHandLayout);
                     break;
                 }
                 case PolySpatialHostCommand.SendXRMeshData:
                 {
-                    PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out PolySpatialHostID* hostID, out Span<byte> data);
-                    fixed (byte* p = data)
-                    {
-                        var meshData = PolySpatialXRMeshesChanged.Serializer.Parse(data.Length, p);
-                        SendXRMeshData(meshData);
-                    }
+                    PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out PolySpatialXRMeshesChanged meshData);
+                    SendXRMeshData(meshData);
 
                     break;
                 }
                 case PolySpatialHostCommand.SetXRDisplayData:
                 {
-                    PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out PolySpatialInstanceID* id, out Span<byte> data);
+                    PolySpatialArgs.ExtractArgs(argCount, argValues, argSizes, out Span<byte> data);
                     fixed (byte* p = data)
                     {
                         var displayData = PolySpatialXRDisplayData.Serializer.Parse(data.Length, p);
-                        SetXRDisplayData(displayData, data, *id);
+                        SetXRDisplayData(displayData, data);
                     }
                     break;
                 }
@@ -192,8 +172,8 @@ namespace Unity.PolySpatial.XR.Internals
                 case PolySpatialHostCommand.InputEvent:
                 {
                     PolySpatialArgs.ExtractInputEventArgs(argCount, argValues, argSizes,
-                        out var type, out var hostId, out var eventCount, out var events, out var stride);
-                    OnInputEvent(*type, *hostId, eventCount, events, stride);
+                        out var type, out var eventCount, out var events);
+                    OnInputEvent(*type, cmdHeader.connectionId, eventCount, events);
                     break;
                 }
             }
@@ -201,7 +181,7 @@ namespace Unity.PolySpatial.XR.Internals
             NextHostHandler.HandleHostCommand(cmdHeader, argCount, argValues, argSizes);
         }
 
-        static unsafe void OnInputEvent(PolySpatialInputType type, PolySpatialHostID hostId, int eventCount, void* eventsPtr, int stride)
+        static unsafe void OnInputEvent(PolySpatialInputType type, PolySpatialConnectionID connectionId, int eventCount, void* eventsPtr)
         {
             switch (type)
             {
@@ -220,7 +200,7 @@ namespace Unity.PolySpatial.XR.Internals
                     NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref poseEvents, AtomicSafetyHandle.GetTempUnsafePtrSliceHandle());
 #endif
 
-                    PolySpatialXRHMDEventListener.OnHeadPoseEvent(hostId, poseEvents);
+                    PolySpatialXRHMDEventListener.OnHeadPoseEvent(connectionId, poseEvents);
                     break;
             }
         }
@@ -247,12 +227,12 @@ namespace Unity.PolySpatial.XR.Internals
             }
         }
 
-        void InitARPlaneData(PolySpatialHostID hostID)
+        void InitARPlaneData(PolySpatialConnectionID connectionId)
         {
             if (PolySpatialXRPlaneSubsystem == null)
                 return;
 
-            PolySpatialXRPlaneSubsystem.InitializeClient(hostID);
+            PolySpatialXRPlaneSubsystem.InitializeClient(connectionId);
         }
 
         void SetARPlaneData(PolySpatialARPlane arPlaneInfo)
@@ -324,7 +304,7 @@ namespace Unity.PolySpatial.XR.Internals
         }
 #endif
 
-        void OnXRHandTrackingEvent(PolySpatialHandID handId, PolySpatialXRHandTrackingEvent evt, PolySpatialHostID hostID)
+        void OnXRHandTrackingEvent(PolySpatialHandID handId, PolySpatialXRHandTrackingEvent evt, PolySpatialConnectionID connectionId)
         {
 #if USE_XR_INPUT && INCLUDE_UNITY_XR_HANDS
             if (m_HandSubsystems == null)
@@ -332,11 +312,11 @@ namespace Unity.PolySpatial.XR.Internals
 
             // ReSharper disable once PossibleNullReferenceException
             foreach (var subsystem in m_HandSubsystems)
-                subsystem.OnTrackingEvent(handId, evt, hostID);
+                subsystem.OnTrackingEvent(handId, evt, connectionId);
 #endif
         }
 
-        void SetXRHandData(PolySpatialXRHandData handData, PolySpatialHostID hostID)
+        void SetXRHandData(PolySpatialXRHandData handData, PolySpatialConnectionID connectionId)
         {
 #if USE_XR_INPUT && INCLUDE_UNITY_XR_HANDS
             if (m_HandSubsystems == null)
@@ -345,7 +325,7 @@ namespace Unity.PolySpatial.XR.Internals
             // ReSharper disable once PossibleNullReferenceException
             foreach (var subsystem in m_HandSubsystems)
             {
-                subsystem.SetHandData(handData, hostID);
+                subsystem.SetHandData(handData, connectionId);
             }
 #endif
         }
@@ -364,13 +344,12 @@ namespace Unity.PolySpatial.XR.Internals
 #endif
         }
 
-        void SetXRDisplayData(PolySpatialXRDisplayData displayData, Span<byte> rawData, PolySpatialInstanceID id)
+        void SetXRDisplayData(PolySpatialXRDisplayData displayData, Span<byte> rawData)
         {
             PolySpatialXRDisplaySubsystemProcessor.SetData(displayData, rawData);
         }
 
-        [CommandHandlerCreationCallback(stage: CommandHandlerGraph.Stage.HostConnectionManager)]
-        static XRHostCommandHandler Create(CommandHandlerGraph.HandlerCreationContext context)
+        internal static XRHostCommandHandler Create(CommandHandlerGraph.HandlerCreationContext context)
         {
             return new XRHostCommandHandler();
         }

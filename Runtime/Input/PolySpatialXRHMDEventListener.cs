@@ -61,7 +61,7 @@ namespace Unity.PolySpatial.InputDevices
 #endif
         }
 
-        public static void OnHeadPoseEvent(PolySpatialHostID hostId, NativeArray<PolySpatialHeadPoseEvent> poseEvents)
+        public static void OnHeadPoseEvent(PolySpatialConnectionID connectionId, NativeArray<PolySpatialHeadPoseEvent> poseEvents)
         {
             if (s_Instance == null)
                 return;

@@ -12,18 +12,22 @@ namespace Unity.PolySpatial.Shell.InputDevices
     /// </summary>
     internal class XRInteractableProxy : UnityEngine.XR.Interaction.Toolkit.Interactables.XRBaseInteractable
     {
-        PolySpatialInstanceID m_ColliderID;
-        PolySpatialInstanceID m_VolumeID;
+        PolySpatialEntityID m_ColliderID;
+        PolySpatialEntityID m_VolumeID;
+        PolySpatialConnectionID m_ConnectionID;
         Transform m_VolumeParent;
 
-        internal PolySpatialInstanceID ColliderID => m_ColliderID;
-
-        internal void Initialize(PolySpatialInstanceID colliderID, PolySpatialInstanceID volumeID, Transform volumeParent)
+        internal void Initialize(
+            PolySpatialEntityID colliderID,
+            PolySpatialEntityID volumeID,
+            PolySpatialConnectionID connectionId,
+            Transform volumeParent)
         {
             Debug.Assert(colliderID.IsValid());
             Debug.Assert(volumeID.IsValid());
             m_ColliderID = colliderID;
             m_VolumeID = volumeID;
+            m_ConnectionID = connectionId;
             m_VolumeParent = volumeParent;
         }
 
@@ -84,9 +88,9 @@ namespace Unity.PolySpatial.Shell.InputDevices
 
         unsafe void PushEvents(NativeArray<PolySpatialPointerEvent> events)
         {
-            var hostId = m_ColliderID.hostId;
             var type = PolySpatialInputType.Pointer;
-            PolySpatialCore.CommandHandlerGraph.MulticastHostHandler?.HostCommand(PolySpatialHostCommand.InputEvent, &type, &hostId, events.AsSpan());
+            PolySpatialCore.CommandHandlerGraph.MulticastHostHandler?.HostCommand(
+                PolySpatialHostCommand.InputEvent.ToHeader(m_ConnectionID), &type, events.AsSpan());
         }
 
         NativeArray<PolySpatialPointerEvent> ConstructEvents(PolySpatialPointerEvent pointerEvent)
