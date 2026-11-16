@@ -6,6 +6,9 @@ using Unity.PolySpatial.Internals;
 using UnityEngine;
 using UnityEngine.Scripting;
 using UnityEngine.XR.ARSubsystems;
+#if ARFOUNDATION_7_0_OR_NEWER
+using BoundedPlane = UnityEngine.XR.ARSubsystems.XRPlane;
+#endif
 
 namespace Unity.PolySpatial.XR.Internals.Subsystems
 {

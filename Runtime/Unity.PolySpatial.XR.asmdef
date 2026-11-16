@@ -58,6 +58,11 @@
             "name": "com.unity.xr.arfoundation",
             "expression": "6.7.0-pre.0",
             "define": "ARFOUNDATION_6_7_OR_NEWER"
+        },
+        {
+            "name": "com.unity.xr.arfoundation",
+            "expression": "7.0.0-pre.0",
+            "define": "ARFOUNDATION_7_0_OR_NEWER"
         }
     ],
     "noEngineReferences": false

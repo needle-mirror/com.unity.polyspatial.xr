@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine;
 using UnityEngine.XR.ARSubsystems;
+#if ARFOUNDATION_7_0_OR_NEWER
+using BoundedPlane = UnityEngine.XR.ARSubsystems.XRPlane;
+#endif
 using Unity.PolySpatial.Internals;
 
 using PlaneAlignment = UnityEngine.XR.ARSubsystems.PlaneAlignment;
